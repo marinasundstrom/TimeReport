@@ -1,0 +1,73 @@
+﻿@using System.ComponentModel.DataAnnotations
+@inject IActivitiesClient ActivitiesClient
+
+<EditForm Model="@this" OnValidSubmit="OnSubmit">
+    <DataAnnotationsValidator />
+
+    <MudDialog>
+        <DialogContent>
+            @if (Activities is not null)
+            {
+                <MudSelect T="ActivityDto" Label="Activity" Class="mb-6" Variant="Variant.Outlined" @bind-Value="Activity" ToStringFunc="x => x?.Name"
+                           For="() => Activity">
+                    @foreach (var activity in Activities)
+                    {
+                        <MudSelectItem Value="@activity" />
+                    }
+                </MudSelect>
+            }
+
+        </DialogContent>
+        <DialogActions>
+            <MudButton OnClick="() => Modal.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">Add</MudButton>
+        </DialogActions>
+    </MudDialog>
+
+</EditForm>
+
+@code {
+    //public IEnumerable<ProjectDto> Projects { get; set; }
+
+    [Parameter]
+    public IEnumerable<ActivityDto> Activities { get; set; }
+
+    [CascadingParameter] MudDialogInstance Modal { get; set; }
+
+    [Parameter]
+    public int Year { get; set; }
+
+    [Parameter]
+    public int Week { get; set; }
+
+    //[Required]
+    //public ProjectDto Project { get; set; }
+
+    [Required]
+    public ActivityDto Activity { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        Activities = await ActivitiesClient.GetActivitiesAsync();
+    }
+
+    async Task OnSubmit()
+    {
+        var result = new ActivityLineModel
+        {
+            Activity = Activity,
+            Entries = GenerateEntriesForWeek(Year, Week).ToList()
+        };
+
+        Modal.Close(DialogResult.Ok(result));
+    }
+
+    IEnumerable<EntryModel> GenerateEntriesForWeek(int year, int week)
+    {
+        return DateTimeHelpers.GetDatesInWeek(year, week)
+            .Select(date => new EntryModel()
+            {
+                Date = date
+            });
+    }
+}
