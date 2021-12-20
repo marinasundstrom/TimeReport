@@ -1,4 +1,6 @@
 ﻿@page "/projects/{projectId}"
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
 @inject IActivitiesClient ActivitiesClient
 @inject IProjectsClient ProjectsClient
 
@@ -14,15 +16,22 @@
 
     </MudPaper>
 
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewActivityClicked">New activity</MudButton>
+
     <MudTable T="ActivityDto" ServerData="@(new Func<TableState, Task<TableData<ActivityDto>>>(ServerReload))"
               Hover="true" @ref="table" Class="mt-4">
         <HeaderContent>
             <MudTh>Name</MudTh>
             <MudTh>Description</MudTh>
+            <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate Context="activity">
             <MudTd DataLabel="Name">@activity.Name</MudTd>
             <MudTd DataLabel="Description">@activity.Description</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditActivityClicked(activity)" />
+                @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@
+            </MudTd>
         </RowTemplate>
         <NoRecordsContent>
             <MudText>No matching records found</MudText>
@@ -66,5 +75,35 @@
         var result = await ActivitiesClient.GetActivitiesAsync(ProjectId);
 
         return new TableData<ActivityDto>() { TotalItems = result.Count(), Items = result };
+    }
+
+    private async Task OnNewActivityClicked()
+    {
+        DialogParameters parameters = new();
+        parameters.Add(nameof(ActivityDialog.ProjectId), project.Id);
+
+        var dialogRef = DialogService.Show<ActivityDialog>("New activity", parameters);
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table.ReloadServerData();
+    }
+
+    private async Task OnEditActivityClicked(ActivityDto activity)
+    {
+        DialogParameters parameters = new();
+        parameters.Add(nameof(ActivityDialog.ActivityId), activity.Id);
+
+        var dialogRef = DialogService.Show<ActivityDialog>($"Edit {activity.Name}", parameters);
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table.ReloadServerData();
     }
 }

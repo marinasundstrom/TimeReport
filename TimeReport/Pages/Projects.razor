@@ -1,6 +1,7 @@
 ﻿@page "/projects"
-@inject IProjectsClient ProjectsClient
 @inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject IProjectsClient ProjectsClient
 
 <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Projects</MudText>
 
@@ -15,15 +16,22 @@
     </MudPaper>
 }
 
+<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewProjectClicked">New project</MudButton>
+
 <MudTable T="ProjectDto" ServerData="@(new Func<TableState, Task<TableData<ProjectDto>>>(ServerReload))"
           Hover="true" @ref="table" OnRowClick="(TableRowClickEventArgs<ProjectDto> project) => GotToProject(project.Item)" Class="mt-4">
     <HeaderContent>
         <MudTh>Name</MudTh>
         <MudTh>Description</MudTh>
+        <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate Context="project">
         <MudTd DataLabel="Name">@project.Name</MudTd>
         <MudTd DataLabel="Description">@project.Description</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditProjectClicked(project)" />
+           @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@
+        </MudTd>
     </RowTemplate>
     <NoRecordsContent>
         <MudText>No matching records found</MudText>
@@ -45,8 +53,6 @@
     public List<ChartSeries> Series = new List<ChartSeries>();
     public string[] XAxisLabels = new string[0];
 
-    [Parameter]
-    public string ProjectId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -70,5 +76,32 @@
     private void GotToProject(ProjectDto project)
     {
         NavigationManager.NavigateTo($"/projects/{project.Id}");
+    }
+
+    private async Task OnNewProjectClicked()
+    {
+        var dialogRef = DialogService.Show<ProjectDialog>("New project");
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table.ReloadServerData();
+    }
+
+    private async Task OnEditProjectClicked(ProjectDto project)
+    {
+        DialogParameters parameters = new();
+        parameters.Add(nameof(ProjectDialog.ProjectId), project.Id);
+
+        var dialogRef = DialogService.Show<ProjectDialog>($"Edit {project.Name}", parameters);
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table.ReloadServerData();
     }
 }

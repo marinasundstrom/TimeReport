@@ -22,7 +22,6 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects(CancellationToken cancellationToken)
     {
         var projects = await context.Projects
-            .Include(x => x.Activities)
             .AsNoTracking()
             .AsSplitQuery()
             .ToListAsync();
@@ -36,7 +35,6 @@ public class ProjectsController : ControllerBase
     public async Task<ActionResult<ProjectDto>> GetProject(string id)
     {
         var project = await context.Projects
-            .Include(x => x.Activities)
             .AsNoTracking()
             .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -48,6 +46,67 @@ public class ProjectsController : ControllerBase
 
         var dto = new ProjectDto(project.Id, project.Name, project.Description);
         return Ok(dto);
+    }
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProjectDto>> CreateProject(CreateProjectDto createProjectDto)
+    {
+        var project = new Project
+        {
+            Id = Guid.NewGuid().ToString(),
+            Name = createProjectDto.Name,
+            Description = createProjectDto.Description
+        };
+
+        context.Projects.Add(project);
+
+        await context.SaveChangesAsync();
+
+        var dto = new ProjectDto(project.Id, project.Name, project.Description);
+        return Ok(dto);
+    }
+
+    [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProjectDto>> UpdateProject(string id, UpdateProjectDto updateProjectDto)
+    {
+        var project = await context.Projects
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        project.Name = updateProjectDto.Name;
+        project.Description = updateProjectDto.Description;
+
+        await context.SaveChangesAsync();
+
+        var dto = new ProjectDto(project.Id, project.Name, project.Description);
+        return Ok(dto);
+    }
+
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult> DeleteProject(string id)
+    {
+        var project = await context.Projects
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        context.Projects.Remove(project);
+
+        await context.SaveChangesAsync();
+
+        return Ok();
     }
 
     [HttpGet("Statistics")]
@@ -157,3 +216,7 @@ public class ProjectsController : ControllerBase
         return Ok(dto);
     }
 }
+
+public record class CreateProjectDto(string Name, string? Description);
+
+public record class UpdateProjectDto(string Name, string? Description);
