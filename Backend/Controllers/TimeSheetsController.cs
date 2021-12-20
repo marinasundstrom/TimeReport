@@ -17,32 +17,6 @@ namespace TimeReport.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-public class ActivitiesController : ControllerBase
-{
-    private readonly TimeReportContext context;
-
-    public ActivitiesController(TimeReportContext context)
-    {
-        this.context = context;
-    }
-
-    [HttpGet]
-    [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ActivityDto>>> GetActivities(CancellationToken cancellationToken)
-    {
-        var activities = await context.Activities
-            .Include(x => x.Project)
-            .AsNoTracking()
-            .AsSplitQuery()
-            .ToListAsync();
-
-        var dto = activities.Select(activity => new ActivityDto(activity.Id, activity.Name, activity.Description, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description)));
-        return Ok(dto);
-    }
-}
-
-[ApiController]
-[Route("api/[controller]")]
 public class TimeSheetsController : ControllerBase
 {
     private const double WorkingWeekHours = 40;
@@ -446,30 +420,3 @@ public class TimeSheetsController : ControllerBase
         return Ok();
     }
 }
-
-public record class ProjectDto(string Id, string Name, string? Description);
-
-public record class ActivityDto(string Id, string Name, string? Description, ProjectDto Project);
-
-public record class TimeSheetDto(string Id, int Year, int Week, TimeSheetStatusDto Status, IEnumerable<EntryDto> Entries);
-
-[JsonConverter(typeof(StringEnumConverter))]
-public enum TimeSheetStatusDto
-{
-    Open,
-    Closed,
-    Approved,
-    Disapproved
-}
-
-public record class EntryDto(string Id, ProjectDto Project, ActivityDto Activity, DateTime Date, double? Hours, string? Description);
-
-public record class CreateEntryDto(string? Id, string? ProjectId, string? ActivityId, DateTime Date, double? Hours, string? Description);
-
-public record class UpdateEntryDto(double? Hours, string? Description);
-
-public record class UpdateEntryDetailsDto(string? Description);
-
-public record class UpdateTimeSheetDto(IEnumerable<UpdateEntryDto2> Entries);
-
-public record class UpdateEntryDto2(string? Id, string? ProjectId, string? ActivityId, DateTime? Date, double? Hours, string? Description);
