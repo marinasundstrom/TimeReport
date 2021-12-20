@@ -11,15 +11,15 @@
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 
-<MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Week @Week - @Year</MudText>
-
-<div class="mb-4">
-    <MudButton Variant="@Variant.Filled" Class="me-2" StartIcon="@Icons.Material.Filled.ChevronLeft" Link="@PreviousWeekLink()">Previous week</MudButton>
-    <MudButton Variant="@Variant.Filled" EndIcon="@Icons.Material.Filled.ChevronRight" Link="@NextWeekLink()">Next week</MudButton>
-</div>
-
 @if (ActivitiesModels is not null && Year is not null && Week is not null)
 {
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Week @Week - @Year</MudText>
+
+    <div class="mb-4">
+        <MudButton Variant="@Variant.Filled" Class="me-2" StartIcon="@Icons.Material.Filled.ChevronLeft" Link="@PreviousWeekLink()">Previous week</MudButton>
+        <MudButton Variant="@Variant.Filled" EndIcon="@Icons.Material.Filled.ChevronRight" Link="@NextWeekLink()">Next week</MudButton>
+    </div>
+
     <EditForm Model="@this">
         <ObjectGraphDataAnnotationsValidator />
 
@@ -51,7 +51,8 @@
 
             <GroupHeaderTemplate Context="c">
                 <MudTh Class="mud-table-cell-custom-group" colspan="10">
-                    <MudText Typo="Typo.h6">@($"{((dynamic)c.Key).Name}")</MudText></MudTh>
+                    <MudText Typo="Typo.h6">@($"{((dynamic)c.Key).Name}")</MudText>
+                </MudTh>
             </GroupHeaderTemplate>
 
             <RowTemplate Context="activityLine">
@@ -99,7 +100,7 @@
     TimeSheetDto timeSheet;
     IEnumerable<ActivityDto> activities = null;
 
-    List<ActivityLineModel>? ActivitiesModels { get;} = new List<ActivityLineModel>();
+    List<ActivityLineModel>? ActivitiesModels { get; } = new List<ActivityLineModel>();
 
     ActivityLineModel? selectedActivity;
     EntryModel? selectedEntry;
@@ -277,7 +278,7 @@
         {
             timeSheet = await TimeSheetsClient.GetTimeSheetForWeekAsync(Year.GetValueOrDefault(), Week.GetValueOrDefault());
         }
-        catch(Exception e)
+        catch (Exception e)
         {
             Snackbar.Add("Failed to download timesheet", Severity.Error);
             isLoading = false;
@@ -374,5 +375,5 @@
             Snackbar.Add("Failed to delete activity", Severity.Error);
         }
     }
-    }
+}
 
