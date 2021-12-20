@@ -45,7 +45,9 @@ public class ActivitiesController : ControllerBase
 [Route("api/[controller]")]
 public class TimeSheetsController : ControllerBase
 {
+    private const double WorkingWeekHours = 40;
     private readonly TimeReportContext context;
+    private const double WorkingDayHours = 8;
 
     public TimeSheetsController(TimeReportContext context)
     {
@@ -221,6 +223,7 @@ public class TimeSheetsController : ControllerBase
 
     [HttpPost("{timeSheetId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<EntryDto>> CreateEntry([FromRoute] string timeSheetId, CreateEntryDto dto, CancellationToken cancellationToken)
     {
         var timeSheet = await context.TimeSheets
@@ -263,6 +266,30 @@ public class TimeSheetsController : ControllerBase
             // Activity not found
         }
 
+        var dateOnly = DateOnly.FromDateTime(dto.Date);
+
+        double totalHoursDay = timeSheet.Entries.Where(e => e.Date == dateOnly).Sum(e => e.Hours.GetValueOrDefault())
+            + dto.Hours.GetValueOrDefault();
+
+        if (totalHoursDay > WorkingDayHours)
+        {
+            return Problem(
+                title: "Exceeds permitted daily working hours",
+                detail: $"Reported daily time exceeds {WorkingDayHours} hours.",
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        double totalHoursWeek = timeSheet.Entries.Sum(x => x.Hours.GetValueOrDefault())
+            + dto.Hours.GetValueOrDefault();
+
+        if (totalHoursWeek > WorkingWeekHours)
+        {
+            return Problem(
+                title: "Exceeds permitted weekly working hours",
+                detail: $"Reported weekly time exceeds {WorkingWeekHours} hours.",
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
         var entry = new Entry
         {
             Id = Guid.NewGuid().ToString(),
@@ -286,6 +313,7 @@ public class TimeSheetsController : ControllerBase
 
     [HttpPut("{timeSheetId}/{entryId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<EntryDto>> UpdateEntry([FromRoute] string timeSheetId, [FromRoute] string entryId, UpdateEntryDto dto, CancellationToken cancellationToken)
     {
         var timeSheet = await context.TimeSheets
@@ -313,6 +341,24 @@ public class TimeSheetsController : ControllerBase
 
         entry.Hours = dto.Hours;
         entry.Description = dto.Description;
+
+        double totalHoursDay = timeSheet.Entries.Where(e => e.Date == entry.Date).Sum(e => e.Hours.GetValueOrDefault());
+        if (totalHoursDay > WorkingDayHours)
+        {
+            return Problem(
+                title: "Exceeds permitted daily working hours",
+                detail: $"Reported daily time exceeds {WorkingDayHours} hours.",
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        double totalHoursWeek = timeSheet.Entries.Sum(x => x.Hours.GetValueOrDefault());
+        if (totalHoursWeek > WorkingWeekHours)
+        {
+            return Problem(
+                title: "Exceeds permitted weekly working hours",
+                detail: $"Reported weekly time exceeds {WorkingWeekHours} hours.",
+                statusCode: StatusCodes.Status403Forbidden);
+        }
 
         await context.SaveChangesAsync();
 

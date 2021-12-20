@@ -175,7 +175,11 @@
 
             entry.Hours = value;
         }
-        catch (Exception)
+        catch (ApiException<ProblemDetails> exc)
+        {
+            Snackbar.Add(exc.Result.Detail, Severity.Error);
+        }
+        catch
         {
             Snackbar.Add("Failed to update hours", Severity.Error);
         }
@@ -210,7 +214,7 @@
 
             entry.Description = value;
         }
-        catch (Exception)
+        catch
         {
             Snackbar.Add("Failed to update description", Severity.Error);
         }
@@ -295,13 +299,11 @@
 
             foreach (var dayDate in DateTimeHelpers.GetDatesInWeek(DateTime.Now.Year, Week.GetValueOrDefault()))
             {
-                Console.Write(dayDate);
-
                 var entry = activityGroup.FirstOrDefault(x => x.Date.Date == dayDate.Date);
 
                 EntryModel? entryModel = null;
 
-                if (entry == null)
+                if (entry is null)
                 {
                     entryModel = new EntryModel
                     {
