@@ -48,5 +48,9 @@ h1:focus {
     }
 
 .selected {
-    background-color: lightblue;
+    background-color: lightblue !important;
+}
+
+.weekendEntry {
+    background-color: lightgray;
 }

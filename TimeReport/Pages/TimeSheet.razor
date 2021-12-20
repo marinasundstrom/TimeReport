@@ -63,7 +63,7 @@
                 {
                     <MudTd DataLabel="@entry.Date.DayOfWeek.ToString()">
                         <div @onclick="() => FocusEntry(activityLine, entry)">
-                            <MudNumericField T="double?" Class="@IsEntrySelectedCss(entry)" Value="entry.Hours" ValueChanged="(value) => OnHoursChanged(value, activityLine, entry)" Variant="Variant.Filled" Margin="Margin.Dense" HideSpinButtons="true" />
+                            <MudNumericField T="double?" Class="@((IsWeekend(entry.Date) ? "weekendEntry" : null) + " " + IsEntrySelectedCss(entry))" Value="entry.Hours" ValueChanged="(value) => OnHoursChanged(value, activityLine, entry)" Variant="Variant.Filled" Margin="Margin.Dense" HideSpinButtons="true" />
                         </div>
                     </MudTd>
                 }
@@ -220,6 +220,8 @@
             Snackbar.Add("Failed to update description", Severity.Error);
         }
     }
+
+    bool IsWeekend(DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
 
     [Parameter]
     public int? Year { get; set; }
