@@ -6,7 +6,13 @@
 {
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@project.Name</MudText>
 
-    <MudChart Class="mt-8" ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+    <MudPaper Class="pa-16 ma-2">
+
+        <MudText Typo="Typo.h6" Align="Align.Center" GutterBottom="true">Activity hours per month</MudText>
+
+        <MudChart Class="mt-8" ChartType="ChartType.Bar" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+
+    </MudPaper>
 
     <MudTable T="ActivityDto" ServerData="@(new Func<TableState, Task<TableData<ActivityDto>>>(ServerReload))"
               Hover="true" @ref="table" Class="mt-4">
