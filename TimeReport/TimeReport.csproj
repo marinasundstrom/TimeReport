@@ -28,4 +28,10 @@
 	    <GlobalPropertiesToRemove></GlobalPropertiesToRemove>
 	  </ProjectReference>
 	</ItemGroup>
+	<ItemGroup>
+	  <Content Remove="wwwroot\js\" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="wwwroot\js\" />
+	</ItemGroup>
 </Project>

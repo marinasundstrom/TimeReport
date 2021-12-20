@@ -38,5 +38,11 @@ builder.Services.AddHttpClient(nameof(TimeReport.Client.IActivitiesClient), (sp,
         })
         .AddTypedClient<TimeReport.Client.IActivitiesClient>((http, sp) => new TimeReport.Client.ActivitiesClient(http));
 
+builder.Services.AddHttpClient(nameof(TimeReport.Client.IReportsClient), (sp, http) =>
+        {
+            http.BaseAddress = new Uri(UriString);
+        })
+        .AddTypedClient<TimeReport.Client.IReportsClient>((http, sp) => new TimeReport.Client.ReportsClient(http));
+
 
 await builder.Build().RunAsync();

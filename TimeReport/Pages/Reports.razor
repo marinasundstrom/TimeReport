@@ -1,0 +1,71 @@
+﻿@page "/reports"
+@inject IDialogService DialogService
+@inject NavigationManager NavigationManager
+@inject IProjectsClient ProjectsClient
+@inject IReportsClient ReportsClient
+@inject IJSRuntime JS
+
+<MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Reports</MudText>
+
+@if (projects is not null)
+{
+    <MudCard>
+        <MudCardContent>
+            <MudGrid>
+                <MudItem xs="12" md="6">
+                    <MudDateRangePicker Label="Time span" HelperText="Select a date range" @bind-DateRange="selectedDateRange" />
+                </MudItem>
+                <MudItem xs="12" md="6">
+                    <MudSelect Label="Projects" HelperText="Select projects" MultiSelection="true" @bind-Value="value" @bind-SelectedValues="options" ToStringFunc="x => x.Name">
+                        @foreach (var project in projects)
+                            {
+                            <MudSelectItem Value="@project">@project.Name</MudSelectItem>
+                            }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="12">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="CreateReport">Create Report</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudCardContent>
+    </MudCard>
+}
+
+@code
+{
+    private bool isLoading = false;
+
+    DateRange selectedDateRange = new DateRange(DateTime.Now.Date.AddMonths(-1), DateTime.Now.Date);
+
+    private ProjectDto? value { get; set; }
+    private IEnumerable<ProjectDto> options { get; set; } = new HashSet<ProjectDto>();
+
+    private IEnumerable<ProjectDto>? projects = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            isLoading = true;
+
+            projects = await ProjectsClient.GetProjectsAsync();
+        }
+        catch (Exception e)
+        {
+
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task CreateReport()
+    {
+        var fileResponse = await ReportsClient.GetReportAsync(options.Select(x => x.Id), selectedDateRange.Start, selectedDateRange.End);
+
+        using var streamRef = new DotNetStreamReference(stream: fileResponse.Stream);
+
+        await JS.InvokeVoidAsync("downloadFileFromStream", "TimeReport.xlsx", streamRef);
+    }
+}
