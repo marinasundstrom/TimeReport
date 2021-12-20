@@ -334,8 +334,8 @@
     {
         DialogParameters parameters = new();
         //parameters.Add(nameof(NewTimeSheetActivityDialog.Activities), activities);
-        parameters.Add(nameof(NewTimeSheetActivityDialog.Year), 2021);
-        parameters.Add(nameof(NewTimeSheetActivityDialog.Week), 50);
+        parameters.Add(nameof(NewTimeSheetActivityDialog.Year), Year);
+        parameters.Add(nameof(NewTimeSheetActivityDialog.Week), Week);
 
         var dialogRef = DialogService.Show<NewTimeSheetActivityDialog>("New activity", parameters);
         var dialogResult = await dialogRef.Result;
