@@ -1,4 +1,5 @@
 ﻿@page "/projects/{projectId}"
+@inject IActivitiesClient ActivitiesClient
 @inject IProjectsClient ProjectsClient
 
 @if (project is not null)
@@ -6,11 +7,33 @@
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@project.Name</MudText>
 
     <MudChart Class="mt-8" ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+
+    <MudTable T="ActivityDto" ServerData="@(new Func<TableState, Task<TableData<ActivityDto>>>(ServerReload))"
+              Hover="true" @ref="table" Class="mt-4">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Description</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="activity">
+            <MudTd DataLabel="Name">@activity.Name</MudTd>
+            <MudTd DataLabel="Description">@activity.Description</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
 }
 
 @code {
     ProjectDto? project;
     Data? data;
+    MudTable<ActivityDto> table;
 
     private ChartOptions options = new ChartOptions();
     public List<ChartSeries> Series = new List<ChartSeries>();
@@ -30,6 +53,12 @@
         {
             Series.Add(new ChartSeries() { Name = d.Name, Data = d.Data.Select(x => (double)x).ToArray() });
         }
+    }
 
+    private async Task<TableData<ActivityDto>> ServerReload(TableState state)
+    {
+        var result = await ActivitiesClient.GetActivitiesAsync(ProjectId);
+
+        return new TableData<ActivityDto>() { TotalItems = result.Count(), Items = result };
     }
 }
