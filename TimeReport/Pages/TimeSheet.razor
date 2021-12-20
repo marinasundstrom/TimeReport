@@ -349,7 +349,7 @@
 
         if (ActivitiesModels.Any(x => x.Activity.Id == obj.Activity.Id))
         {
-            Snackbar.Add("Activity has already been added.", Severity.Error);
+            Snackbar.Add("Activity has already been added.", Severity.Info);
             return;
         }
 
