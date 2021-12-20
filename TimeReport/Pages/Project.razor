@@ -50,7 +50,11 @@
     Data? data;
     MudTable<ActivityDto> table;
 
-    private ChartOptions options = new ChartOptions();
+    private ChartOptions options = new ChartOptions()
+    {
+        YAxisFormat = "0 h",
+        YAxisTicks = 10
+    };
     public List<ChartSeries> Series = new List<ChartSeries>();
     public string[] XAxisLabels = new string[0];
 
