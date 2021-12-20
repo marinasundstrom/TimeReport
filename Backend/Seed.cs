@@ -44,10 +44,20 @@ static class Seed
 
             project.Activities.Add(activity);
 
+            var activity3 = new Activity
+            {
+                Id = Guid.NewGuid().ToString(),
+                Name = "Övrigt",
+                MinHours = null,
+                MaxHours = null
+            };
+
+            project.Activities.Add(activity3);
+
             var project2 = new Project
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "Axis"
+                Name = "ACME"
             };
 
             context.Projects.Add(project2);
@@ -55,7 +65,7 @@ static class Seed
             var activity2 = new Activity
             {
                 Id = Guid.NewGuid().ToString(),
-                Name = "Konsultuppdrag",
+                Name = "Konsulttid",
                 MinHours = null,
                 MaxHours = null
             };
@@ -82,7 +92,7 @@ static class Seed
                 new Entry
                 {
                     Id = Guid.NewGuid().ToString(),
-                    Date = DateOnly.FromDateTime(DateTime.Now),
+                    Date = DateOnly.FromDateTime(DateTime.Now.AddDays(2)),
                     Project = project2,
                     Activity = activity2,
                     Hours = 2,

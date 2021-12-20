@@ -14,7 +14,7 @@
 <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Week @Week - @Year</MudText>
 
 <div class="mb-4">
-    <MudButton Class="me-2" Variant="@Variant.Filled" StartIcon="@Icons.Material.Filled.ChevronLeft" Link="@PreviousWeekLink()">Previous week</MudButton>
+    <MudButton Variant="@Variant.Filled" Class="me-2" StartIcon="@Icons.Material.Filled.ChevronLeft" Link="@PreviousWeekLink()">Previous week</MudButton>
     <MudButton Variant="@Variant.Filled" EndIcon="@Icons.Material.Filled.ChevronRight" Link="@NextWeekLink()">Next week</MudButton>
 </div>
 
@@ -27,7 +27,7 @@
                   GroupBy="@_groupDefinition">
 
             <ToolBarContent>
-                <MudButton StartIcon="@Icons.Material.Filled.Add" OnClick="NewActivity">New activity</MudButton>
+                <MudButton Variant="@Variant.Filled" Color="Color.Primary" Class="me-2" StartIcon="@Icons.Material.Filled.Add" OnClick="NewActivity">New activity</MudButton>
                 <MudButton StartIcon="@Icons.Material.Filled.List">Templates</MudButton>
                 <MudSpacer />
                 <MudText Typo="@Typo.body1" Class="ms-4 me-2"><b>Status:</b> </MudText>
@@ -51,7 +51,7 @@
 
             <GroupHeaderTemplate Context="c">
                 <MudTh Class="mud-table-cell-custom-group" colspan="10">
-                    <MudText Typo="Typo.h6">@($"{((ProjectDto)c.Key).Name}")</MudText></MudTh>
+                    <MudText Typo="Typo.h6">@($"{((dynamic)c.Key).Name}")</MudText></MudTh>
             </GroupHeaderTemplate>
 
             <RowTemplate Context="activityLine">
@@ -109,7 +109,7 @@
         GroupName = "Project",
         Indentation = false,
         Expandable = true,
-        Selector = (e) => e.Activity.Project
+        Selector = (e) => new { e.Activity.Project.Id, e.Activity.Project.Name }
     };
 
     string? IsEntrySelectedCss(EntryModel entry)
@@ -343,7 +343,15 @@
         if (dialogResult.Cancelled)
             return;
 
-        ActivitiesModels.Add((ActivityLineModel)dialogResult.Data);
+        var obj = (ActivityLineModel)dialogResult.Data;
+
+        if (ActivitiesModels.Any(x => x.Activity.Id == obj.Activity.Id))
+        {
+            Snackbar.Add("Activity has already been added.", Severity.Error);
+            return;
+        }
+
+        ActivitiesModels.Add(obj);
     }
 
     async Task DeleteActivity(ActivityLineModel activityLine)
