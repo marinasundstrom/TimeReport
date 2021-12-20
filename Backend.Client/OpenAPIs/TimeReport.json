@@ -158,12 +158,32 @@
         }
       }
     },
-    "/api/Projects/{projectId}/Statistics": {
+    "/api/Projects/Statistics": {
       "get": {
         "tags": [
           "Projects"
         ],
         "operationId": "Projects_GetStatistics",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Data"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/{projectId}/Statistics": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_GetProjectStatistics",
         "parameters": [
           {
             "name": "projectId",

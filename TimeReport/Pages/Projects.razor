@@ -1,0 +1,68 @@
+﻿@page "/projects"
+@inject IProjectsClient ProjectsClient
+@inject NavigationManager NavigationManager
+
+@if (data is not null)
+{
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Projects</MudText>
+
+    <MudChart Class="mt-8" ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+
+    <MudTable T="ProjectDto" ServerData="@(new Func<TableState, Task<TableData<ProjectDto>>>(ServerReload))"
+              Hover="true" @ref="table" OnRowClick="(TableRowClickEventArgs<ProjectDto> project) => GotToProject(project.Item)" Class="mt-4">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh>Description</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="project">
+            <MudTd DataLabel="Name">@project.Name</MudTd>
+            <MudTd DataLabel="Description">@project.Description</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    MudTable<ProjectDto> table;
+
+    Data? data;
+
+    private ChartOptions options = new ChartOptions();
+    public List<ChartSeries> Series = new List<ChartSeries>();
+    public string[] XAxisLabels = new string[0];
+
+    [Parameter]
+    public string ProjectId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        data = await ProjectsClient.GetStatisticsAsync();
+
+        XAxisLabels = data.Labels.ToArray();
+
+        foreach (var d in data.Series)
+        {
+            Series.Add(new ChartSeries() { Name = d.Name, Data = d.Data.Select(x => (double)x).ToArray() });
+        }
+    }
+
+    private async Task<TableData<ProjectDto>> ServerReload(TableState state)
+    {
+        var result = await ProjectsClient.GetProjectsAsync();
+
+        return new TableData<ProjectDto>() { TotalItems = result.Count(), Items = result };
+    }
+
+    private void GotToProject(ProjectDto project)
+    {
+        NavigationManager.NavigateTo($"/projects/{project.Id}");
+    }
+}

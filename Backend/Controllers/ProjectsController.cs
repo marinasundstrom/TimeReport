@@ -46,13 +46,63 @@ public class ProjectsController : ControllerBase
             return NotFound();
         }
 
-
         var dto = new ProjectDto(project.Id, project.Name, project.Description);
         return Ok(dto);
     }
 
+    [HttpGet("Statistics")]
+    public async Task<ActionResult<Data>> GetStatistics()
+    {
+        var projects = await context.Projects
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Entries)
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync();
+
+        List<DateTime> months = new();
+
+        const int monthSpan = 5;
+
+        DateTime dt = DateTime.Now.Date.AddMonths(-monthSpan);
+
+        for (int i = 0; i <= monthSpan; i++)
+        {
+            months.Add(dt);
+
+            dt = dt.AddMonths(1);
+        }
+
+        List<Series> series = new();
+
+        var firstMonth = DateOnly.FromDateTime(DateTime.Now.Date.AddMonths(-monthSpan));
+
+        foreach (var project in projects)
+        {
+            List<decimal> values = new ();
+
+            foreach(var month in months)
+            {
+                var value = project.Activities.SelectMany(a => a.Entries)
+                    .Where(e => e.Date > firstMonth)
+                    .Where(e => e.Date.Year == month.Year && e.Date.Month == month.Month)
+                    .Sum(x => x.Hours.GetValueOrDefault());
+
+                values.Add((decimal)value);
+            }
+
+            series.Add(new Series(project.Name, values));
+        }
+
+        var dto = new Data(
+            months.Select(d => d.ToString("MMM yy")).ToArray(),
+            series);
+
+        return Ok(dto);
+    }
+
     [HttpGet("{projectId}/Statistics")]
-    public async Task<ActionResult<Data>> GetStatistics(string projectId)
+    public async Task<ActionResult<Data>> GetProjectStatistics(string projectId)
     {
         var project = await context.Projects
             .Include(x => x.Activities)
@@ -85,9 +135,9 @@ public class ProjectsController : ControllerBase
 
         foreach (var activity in project.Activities)
         {
-            List<decimal> values = new ();
+            List<decimal> values = new();
 
-            foreach(var month in months)
+            foreach (var month in months)
             {
                 var value = activity.Entries
                     .Where(e => e.Date > firstMonth)
