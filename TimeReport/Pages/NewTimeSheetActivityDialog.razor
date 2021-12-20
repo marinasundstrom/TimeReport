@@ -48,7 +48,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Activities = await ActivitiesClient.GetActivitiesAsync();
+        Activities = await ActivitiesClient.GetActivitiesAsync(null);
     }
 
     async Task OnSubmit()

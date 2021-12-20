@@ -232,7 +232,7 @@
 
         try
         {
-            activities = await ActivitiesClient.GetActivitiesAsync();
+            activities = await ActivitiesClient.GetActivitiesAsync(null);
         }
         catch (Exception e)
         {

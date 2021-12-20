@@ -1,4 +1,6 @@
-﻿using Azure.Identity;
+﻿using System.Globalization;
+
+using Azure.Identity;
 using Azure.Storage.Blobs;
 
 using MediatR;
@@ -23,6 +25,9 @@ var Configuration = builder.Configuration;
 services
     .AddControllers()
     .AddNewtonsoftJson();
+
+CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("sv-SE");
+CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.CurrentCulture;
 
 services.AddSqlServer<TimeReportContext>(Configuration.GetConnectionString("mssql"));
 

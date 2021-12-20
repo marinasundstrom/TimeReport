@@ -31,3 +31,8 @@ public record class UpdateEntryDetailsDto(string? Description);
 public record class UpdateTimeSheetDto(IEnumerable<UpdateEntryDto2> Entries);
 
 public record class UpdateEntryDto2(string? Id, string? ProjectId, string? ActivityId, DateTime? Date, double? Hours, string? Description);
+
+
+public record class Series(string Name, IEnumerable<decimal> Data);
+
+public record class Data(string[] Labels, IEnumerable<Series> Series);

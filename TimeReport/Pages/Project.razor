@@ -1,0 +1,35 @@
+﻿@page "/projects/{projectId}"
+@inject IProjectsClient ProjectsClient
+
+@if (project is not null)
+{
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@project.Name</MudText>
+
+    <MudChart Class="mt-8" ChartType="ChartType.Line" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+}
+
+@code {
+    ProjectDto? project;
+    Data? data;
+
+    private ChartOptions options = new ChartOptions();
+    public List<ChartSeries> Series = new List<ChartSeries>();
+    public string[] XAxisLabels = new string[0];
+
+    [Parameter]
+    public string ProjectId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        project = await ProjectsClient.GetProjectAsync(ProjectId);
+        data = await ProjectsClient.GetStatisticsAsync(ProjectId);
+
+        XAxisLabels = data.Labels.ToArray();
+
+        foreach (var d in data.Series)
+        {
+            Series.Add(new ChartSeries() { Name = d.Name, Data = d.Data.Select(x => (double)x).ToArray() });
+        }
+
+    }
+}
