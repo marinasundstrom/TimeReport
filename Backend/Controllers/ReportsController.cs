@@ -63,9 +63,9 @@ public class ReportsController : ControllerBase
 
                     worksheet.Cells[headerRow, 3]
                         .Value = data.Sum(e => e.Hours.GetValueOrDefault());
-
-                    row++;
                 }
+
+                row++;
             }
 
             Stream stream = new MemoryStream(package.GetAsByteArray());
