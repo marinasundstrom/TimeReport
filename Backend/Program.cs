@@ -90,7 +90,7 @@ app.MapGet("/info", () =>
 .WithTags("Info")
 .Produces<string>();
 
-//await app.SeedAsync();
+await app.SeedAsync();
 
 app.MapControllers();
 app.MapHub<ItemsHub>("/hubs/items");

@@ -125,6 +125,11 @@ public class ProjectMembership : AuditableEntity, ISoftDelete
 
     public DateTime? Thru { get; set; }
 
+    /// <summary>
+    /// Expected hours per week / timesheet
+    /// </summary>
+    public double? ExpectedHoursWeekly { get; set; }
+
     public DateTime? Deleted { get; set; }
     public string? DeletedBy { get; set; }
 }
@@ -141,9 +146,15 @@ public class Activity : AuditableEntity, ISoftDelete
 
     public List<Entry> Entries { get; set; } = new List<Entry>();
 
-    public double? MinHours { get; set; }
+    /// <summary>
+    /// Minimum hours per day / entry
+    /// </summary>
+    public double? MinHoursPerDay { get; set; }
 
-    public double? MaxHours { get; set; }
+    /// <summary>
+    /// Maximum hours per day / entry
+    /// </summary>
+    public double? MaxHoursPerDay { get; set; }
 
     public decimal? HourlyRate { get; set; }
 
@@ -181,12 +192,6 @@ public class TimeSheet : AuditableEntity, ISoftDelete
     public int Week { get; set; }
 
     public TimeSheetStatus Status { get; set; }
-
-    //public double? MinHours { get; set; }
-
-    //public double? MaxHours { get; set; }
-
-    //public User User { get; set; } = null!;
 
     public List<TimeSheetActivity> Activities { get; set; } = new List<TimeSheetActivity>();
 

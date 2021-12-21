@@ -17,7 +17,8 @@ static class Seed
         var project = new Project
         {
             Id = Guid.NewGuid().ToString(),
-            Name = "Internt",
+            Name = "Internal",
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         };
@@ -27,9 +28,10 @@ static class Seed
         var activity = new Activity
         {
             Id = Guid.NewGuid().ToString(),
-            Name = "Bänken",
-            MinHours = null,
-            MaxHours = null,
+            Name = "Documentation",
+            MinHoursPerDay = null,
+            MaxHoursPerDay = null,
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         };
@@ -39,9 +41,10 @@ static class Seed
         var activity3 = new Activity
         {
             Id = Guid.NewGuid().ToString(),
-            Name = "Övrigt",
-            MinHours = null,
-            MaxHours = null,
+            Name = "Miscellaneous",
+            MinHoursPerDay = null,
+            MaxHoursPerDay = null,
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         };
@@ -52,6 +55,7 @@ static class Seed
         {
             Id = Guid.NewGuid().ToString(),
             Name = "ACME",
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         };
@@ -61,9 +65,10 @@ static class Seed
         var activity2 = new Activity
         {
             Id = Guid.NewGuid().ToString(),
-            Name = "Konsulttid",
-            MinHours = null,
-            MaxHours = null,
+            Name = "Project time",
+            MinHoursPerDay = null,
+            MaxHoursPerDay = null,
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         };
@@ -78,6 +83,7 @@ static class Seed
             SSN = "sdfsdfsd",
             FirstName = "Alice",
             LastName = "McDonald",
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         };
@@ -89,6 +95,7 @@ static class Seed
             FirstName = "Robert",
             LastName = "Johnson",
             DisplayName = "Bob Johnson",
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         };
@@ -103,6 +110,7 @@ static class Seed
         {
             Id = Guid.NewGuid().ToString(),
             User = user1,
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         });
@@ -111,6 +119,7 @@ static class Seed
         {
             Id = Guid.NewGuid().ToString(),
             User = user1,
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         });
@@ -119,6 +128,7 @@ static class Seed
         {
             Id = Guid.NewGuid().ToString(),
             User = user2,
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         });
