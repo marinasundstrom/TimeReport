@@ -26,6 +26,8 @@ public class ReportsController : ControllerBase
         DateOnly endDate2 = DateOnly.FromDateTime(endDate);
 
         var entries = await context.Entries
+            .Include(p => p.TimeSheet)
+            .ThenInclude(p => p.User)
             .Include(p => p.Project)
             .Include(p => p.Activity)
             .Where(p => projectIds.Any(x => x == p.Project.Id))
@@ -54,14 +56,14 @@ public class ReportsController : ControllerBase
                 {
                     var data = activityGroup
                         .OrderBy(e => e.Date)
-                        .Select(e => new { e.Date, Activity = e.Activity.Name, e.Hours, e.Description });
+                        .Select(e => new { e.Date, User = $" {e.TimeSheet.User.LastName}, {e.TimeSheet.User.FirstName}", Activity = e.Activity.Name, e.Hours, e.Description });
 
                     worksheet.Cells[row, 1]
                         .LoadFromCollection(data);
 
                     row += data.Count();
 
-                    worksheet.Cells[headerRow, 3]
+                    worksheet.Cells[headerRow, 4]
                         .Value = data.Sum(e => e.Hours.GetValueOrDefault());
                 }
 
