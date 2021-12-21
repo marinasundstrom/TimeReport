@@ -639,13 +639,22 @@
             "x-position": 1
           },
           {
+            "name": "userId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 2
+          },
+          {
             "name": "startDate",
             "in": "query",
             "schema": {
               "type": "string",
               "format": "date-time"
             },
-            "x-position": 2
+            "x-position": 3
           },
           {
             "name": "endDate",
@@ -654,7 +663,7 @@
               "type": "string",
               "format": "date-time"
             },
-            "x-position": 3
+            "x-position": 4
           }
         ],
         "responses": {

@@ -20,26 +20,32 @@ public class ReportsController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<FileStreamResult> GetReport([FromQuery] string[] projectIds, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
+    public async Task<FileStreamResult> GetReport([FromQuery] string[] projectIds, [FromQuery] string? userId, [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
     {
         DateOnly startDate2 = DateOnly.FromDateTime(startDate);
         DateOnly endDate2 = DateOnly.FromDateTime(endDate);
 
-        var entries = await context.Entries
+        var query = context.Entries
             .Include(p => p.TimeSheet)
             .ThenInclude(p => p.User)
             .Include(p => p.Project)
             .Include(p => p.Activity)
             .Where(p => projectIds.Any(x => x == p.Project.Id))
             .Where(p => p.Date >= startDate2 && p.Date <= endDate2)
-            .AsSplitQuery()
-            .ToListAsync();
+            .AsSplitQuery();
+
+        if(userId is not null)
+        {
+            query = query.Where(x => x.TimeSheet.User.Id == userId);
+        }
+
+        var entries = await query.ToListAsync();
 
         int row = 1;
 
         using (var package = new ExcelPackage())
         {
-            var worksheet = package.Workbook.Worksheets.Add("Projects");
+            var worksheet = package.Workbook.Worksheets.Add("Projects"); 
 
             var projectGroups = entries.GroupBy(x => x.Project);
 
