@@ -43,3 +43,10 @@ public record class Data(string[] Labels, IEnumerable<Series> Series);
 
 
 public record class UserDto(string Id, string FirstName, string LastName, string? DisplayName, DateTime Created, DateTime? Deleted);
+
+
+public record class ProjectMembershipDto(string Id, ProjectDto Projects, UserDto User, DateTime From, DateTime? Thru);
+
+public record class CreateProjectMembershipDto(string UserId, DateTime From, DateTime? Thru);
+
+public record class UpdateProjectMembershipDto(DateTime From, DateTime? Thru);

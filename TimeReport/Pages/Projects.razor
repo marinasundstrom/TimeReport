@@ -71,7 +71,7 @@
 
     private async Task<TableData<ProjectDto>> ServerReload(TableState state)
     {
-        var result = await ProjectsClient.GetProjectsAsync();
+        var result = await ProjectsClient.GetProjectsAsync(null);
 
         return new TableData<ProjectDto>() { TotalItems = result.Count(), Items = result };
     }

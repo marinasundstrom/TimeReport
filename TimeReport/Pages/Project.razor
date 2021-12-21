@@ -16,6 +16,8 @@
 
     </MudPaper>
 
+    <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true" Class="mt-6">Activities</MudText>
+
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewActivityClicked">New activity</MudButton>
 
     <MudTable T="ActivityDto" ServerData="@(new Func<TableState, Task<TableData<ActivityDto>>>(ServerReload))"
@@ -43,12 +45,41 @@
             <MudTablePager />
         </PagerContent>
     </MudTable>
+
+    <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true" Class="mt-6">Members</MudText>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnAddMembershipClicked">New member</MudButton>
+
+    <MudTable T="ProjectMembershipDto" ServerData="@(new Func<TableState, Task<TableData<ProjectMembershipDto>>>(ServerReload2))"
+              Hover="true" @ref="table2" Class="mt-4">
+        <HeaderContent>
+            <MudTh>Name</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate Context="membership">
+            <MudTd DataLabel="Name">@membership.User.FirstName @membership.User.LastName</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditMembershipClicked(membership)" />
+                @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
 }
 
 @code {
     ProjectDto? project;
     Data? data;
     MudTable<ActivityDto> table;
+    MudTable<ProjectMembershipDto> table2;
 
     private ChartOptions options = new ChartOptions()
     {
@@ -81,6 +112,13 @@
         return new TableData<ActivityDto>() { TotalItems = result.Count(), Items = result };
     }
 
+    private async Task<TableData<ProjectMembershipDto>> ServerReload2(TableState state)
+    {
+        var result = await ProjectsClient.GetProjectMembershipsAsync(ProjectId);
+
+        return new TableData<ProjectMembershipDto>() { TotalItems = result.Count(), Items = result };
+    }
+
     private async Task OnNewActivityClicked()
     {
         DialogParameters parameters = new();
@@ -109,5 +147,36 @@
             return;
 
         table.ReloadServerData();
+    }
+
+    private async Task OnAddMembershipClicked()
+    {
+        DialogParameters parameters = new();
+        parameters.Add(nameof(MembershipDialog.ProjectId), project.Id);
+
+        var dialogRef = DialogService.Show<MembershipDialog>("New membership", parameters);
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table2.ReloadServerData();
+    }
+
+    private async Task OnEditMembershipClicked(ProjectMembershipDto membership)
+    {
+        DialogParameters parameters = new();
+        parameters.Add(nameof(MembershipDialog.ProjectId), membership.Projects.Id);
+        parameters.Add(nameof(MembershipDialog.MembershipId), membership.Id);
+
+        var dialogRef = DialogService.Show<MembershipDialog>($"Edit membership", parameters);
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table2.ReloadServerData();
     }
 }

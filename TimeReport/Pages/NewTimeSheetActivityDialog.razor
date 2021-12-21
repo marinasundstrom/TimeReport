@@ -41,6 +41,9 @@
     //public IEnumerable<ProjectDto> Projects { get; set; }
 
     [Parameter]
+    public string UserId { get; set; }
+
+    [Parameter]
     public IEnumerable<ProjectDto> Projects { get; set; }
 
     [Parameter]
@@ -60,10 +63,10 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Projects = await ProjectsClient.GetProjectsAsync();
+        Projects = await ProjectsClient.GetProjectsAsync(UserId);
     }
 
-    private async Task OnProjectChanged(ProjectDto project) 
+    private async Task OnProjectChanged(ProjectDto project)
     {
         Activities = await ActivitiesClient.GetActivitiesAsync(project.Id);
 

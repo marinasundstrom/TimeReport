@@ -25,6 +25,8 @@ public class TimeReportContext : DbContext
 
     public DbSet<Project> Projects { get; set; } = null!;
 
+    public DbSet<ProjectMembership> ProjectMemberships { get; set; } = null!;
+
     public DbSet<Activity> Activities { get; set; } = null!;
 
     public DbSet<Entry> Entries { get; set; } = null!;
@@ -60,6 +62,21 @@ public class Project
     public string? Description { get; set; }
 
     public List<Activity> Activities { get; set; } = new List<Activity>();
+
+    public List<ProjectMembership> Memberships { get; set; } = new List<ProjectMembership>();
+}
+
+public class ProjectMembership
+{
+    public string Id { get; set; } = null!;
+
+    public Project Project { get; set; } = null!;
+
+    public User User { get; set; } = null!;
+
+    public DateTime From { get; set; }
+
+    public DateTime? Thru { get; set; }
 }
 
 public class Activity

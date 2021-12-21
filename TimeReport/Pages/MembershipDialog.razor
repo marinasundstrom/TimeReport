@@ -1,0 +1,74 @@
+﻿@using System.ComponentModel.DataAnnotations
+@inject IProjectsClient ProjectsClient
+@inject IUsersClient UsersClient
+
+<EditForm Model="@this" OnValidSubmit="OnSubmit">
+    <DataAnnotationsValidator />
+
+    <MudDialog>
+        <DialogContent>
+
+            @if (MembershipId is null && users is not null)
+            {
+                <MudSelect T="UserDto" Label="User" Class="mb-6" Variant="Variant.Outlined" @bind-Value="User" ToStringFunc="x => x?.FirstName"
+                           For="() => User">
+                    @foreach (var user in users)
+                    {
+                        <MudSelectItem Value="@user" />
+                    }
+                </MudSelect>
+            }
+
+        </DialogContent>
+
+        <DialogActions>
+            <MudButton OnClick="() => Modal.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">@(MembershipId is null ? "Create" : "Save changes")</MudButton>
+        </DialogActions>
+    </MudDialog>
+
+</EditForm>
+
+@code {
+    IEnumerable<UserDto> users;
+
+    [CascadingParameter] MudDialogInstance Modal { get; set; }
+
+    [Parameter] public string? ProjectId { get; set; }
+
+    [Parameter] public string? MembershipId { get; set; }
+
+    [Required]
+    public UserDto User { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        users = await UsersClient.GetUsersAsync();
+
+        if (MembershipId is not null)
+        {
+            var result = await ProjectsClient.GetProjectMembershipAsync(ProjectId, MembershipId);
+
+            User = result.User;
+        }
+    }
+
+    async Task OnSubmit()
+    {
+        ProjectMembershipDto? result = null;
+
+        if (MembershipId is null)
+        {
+            result = await ProjectsClient.CreateProjectMembershipAsync(ProjectId, new CreateProjectMembershipDto
+            {
+                UserId = User.Id
+            });
+        }
+        else
+        {
+            result = await ProjectsClient.UpdateProjectMembershipAsync(ProjectId, MembershipId, new UpdateProjectMembershipDto());
+        }
+
+        Modal.Close(DialogResult.Ok(result));
+    }
+}

@@ -235,7 +235,7 @@
     async Task NewActivity()
     {
         DialogParameters parameters = new();
-        //parameters.Add(nameof(NewTimeSheetActivityDialog.Activities), activities);
+        parameters.Add(nameof(NewTimeSheetActivityDialog.UserId), User.Id);
         parameters.Add(nameof(NewTimeSheetActivityDialog.Year), Year);
         parameters.Add(nameof(NewTimeSheetActivityDialog.Week), Week);
 

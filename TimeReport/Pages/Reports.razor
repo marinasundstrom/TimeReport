@@ -48,7 +48,7 @@
         {
             isLoading = true;
 
-            projects = await ProjectsClient.GetProjectsAsync();
+            projects = await ProjectsClient.GetProjectsAsync(null);
         }
         catch (Exception e)
         {

@@ -19,12 +19,20 @@ public class ProjectsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects(CancellationToken cancellationToken)
+    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects(string? userId = null)
     {
-        var projects = await context.Projects
+        var query = context.Projects
+            .Include(p => p.Memberships)
             .AsNoTracking()
             .AsSplitQuery()
-            .ToListAsync();
+            .AsQueryable();
+
+        if(userId is not null)
+        {
+            query = query.Where(p => p.Memberships.Any(x => x.User.Id ==userId));
+        }
+
+        var projects = await query.ToArrayAsync();
 
         var dto = projects.Select(project => new ProjectDto(project.Id, project.Name, project.Description));
         return Ok(dto);
@@ -138,9 +146,9 @@ public class ProjectsController : ControllerBase
 
         foreach (var project in projects)
         {
-            List<decimal> values = new ();
+            List<decimal> values = new();
 
-            foreach(var month in months)
+            foreach (var month in months)
             {
                 var value = project.Activities.SelectMany(a => a.Entries)
                     .Where(e => e.Date > firstMonth)
@@ -214,6 +222,178 @@ public class ProjectsController : ControllerBase
             series);
 
         return Ok(dto);
+    }
+
+    [HttpGet("{id}/Memberships")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ProjectMembershipDto>>> GetProjectMemberships(string id)
+    {
+        var project = await context.Projects
+            .Include(p => p.Memberships)
+            .Include(p => p.Memberships)
+            .ThenInclude(m => m.User)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        var dto = project.Memberships
+            .Select(m => new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.Created, m.User.Deleted),
+            m.From, m.Thru));
+
+        return Ok(dto);
+    }
+
+    [HttpGet("{id}/Memberships/{membershipId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProjectMembershipDto>> GetProjectMembership(string id, string membershipId)
+    {
+        var project = await context.Projects
+            .Include(p => p.Memberships)
+            .Include(p => p.Memberships)
+            .ThenInclude(m => m.User)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        var m = project.Memberships.FirstOrDefault(x => x.Id == membershipId);
+
+        if (m is null)
+        {
+            return NotFound();
+        }
+
+        var dto = new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.Created, m.User.Deleted),
+            m.From, m.Thru);
+
+        return Ok(dto);
+    }
+
+    [HttpPost("{id}/Memberships")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProjectMembershipDto>> CreateProjectMembership(string id, CreateProjectMembershipDto createProjectMembershipDto)
+    {
+        var project = await context.Projects
+            .Include(p => p.Memberships)
+            .Include(p => p.Memberships)
+            .ThenInclude(m => m.User)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        var user = await context.Users
+            .FirstOrDefaultAsync(x => x.Id == createProjectMembershipDto.UserId);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        var membership = project.Memberships.FirstOrDefault(x => x.User.Id == user.Id);
+
+        if (membership is not null)
+        {
+            return Problem(
+                title: "User is already a member of this project",
+                statusCode: StatusCodes.Status403Forbidden);
+        }
+
+        var m = new ProjectMembership()
+        {
+            Id = Guid.NewGuid().ToString(),
+            Project = project,
+            User = user,
+            From = createProjectMembershipDto.From,
+            Thru = createProjectMembershipDto.Thru
+        };
+
+        context.ProjectMemberships.Add(m);
+
+        await context.SaveChangesAsync();
+
+        var dto = new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.Created, m.User.Deleted),
+            m.From, m.Thru);
+
+        return Ok(dto);
+    }
+
+    [HttpPut("{id}/Memberships/{membershipId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ProjectMembershipDto>> UpdateProjectMembership(string id, string membershipId, UpdateProjectMembershipDto updateProjectMembershipDto)
+    {
+        var project = await context.Projects
+            .Include(p => p.Memberships)
+            .Include(p => p.Memberships)
+            .ThenInclude(m => m.User)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        var m = project.Memberships.FirstOrDefault(x => x.Id == membershipId);
+
+        if (m is null)
+        {
+            return NotFound();
+        }
+
+        m.From = updateProjectMembershipDto.From;
+        m.Thru = updateProjectMembershipDto.Thru;
+
+        await context.SaveChangesAsync();
+
+        var dto = new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.Created, m.User.Deleted),
+            m.From, m.Thru);
+
+        return Ok(dto);
+    }
+
+    [HttpDelete("{id}/Memberships/{membershipId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult> DeleteProjectMembership(string id, string membershipId)
+    {
+        var project = await context.Projects
+            .Include(p => p.Memberships)
+            .Include(p => p.Memberships)
+            .ThenInclude(m => m.User)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        var m = project.Memberships.FirstOrDefault(x => x.Id == membershipId);
+
+        if (m is null)
+        {
+            return NotFound();
+        }
+
+        context.ProjectMemberships.Remove(m);
+
+        await context.SaveChangesAsync();
+
+        return Ok();
     }
 }
 
