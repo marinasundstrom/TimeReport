@@ -23,6 +23,7 @@ public class ProjectsController : ControllerBase
     {
         var query = context.Projects
             .Include(p => p.Memberships)
+            .OrderBy(p => p.Created)
             .AsNoTracking()
             .AsSplitQuery()
             .AsQueryable();
@@ -232,6 +233,7 @@ public class ProjectsController : ControllerBase
             .Include(p => p.Memberships)
             .Include(p => p.Memberships)
             .ThenInclude(m => m.User)
+            .OrderBy(p => p.Created)
             .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.Id == id);
 

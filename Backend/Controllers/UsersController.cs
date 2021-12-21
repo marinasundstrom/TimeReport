@@ -22,6 +22,7 @@ public class UsersController : ControllerBase
     public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers(CancellationToken cancellationToken)
     {
         var users = await context.Users
+            .OrderBy(p => p.Created)
             .AsNoTracking()
             .AsSplitQuery()
             .ToListAsync();

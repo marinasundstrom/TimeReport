@@ -23,6 +23,7 @@ public class ActivitiesController : ControllerBase
     {
         var query = context.Activities
             .Include(x => x.Project)
+            .OrderBy(p => p.Created)
             .AsNoTracking()
             .AsSplitQuery();
 
