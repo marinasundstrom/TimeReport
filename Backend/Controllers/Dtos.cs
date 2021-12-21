@@ -9,7 +9,11 @@ public record class ProjectDto(string Id, string Name, string? Description);
 
 public record class ActivityDto(string Id, string Name, string? Description, ProjectDto Project);
 
-public record class TimeSheetDto(string Id, int Year, int Week, TimeSheetStatusDto Status, UserDto User, IEnumerable<EntryDto> Entries);
+public record class TimeSheetDto(string Id, int Year, int Week, TimeSheetStatusDto Status, UserDto User, IEnumerable<TimeSheetActivityDto> Activities);
+
+public record class TimeSheetActivityDto(string Id, string Name, string? Description, ProjectDto Project, IEnumerable<TimeSheetEntryDto> Entries);
+
+public record class TimeSheetEntryDto(string Id, DateTime Date, double? Hours, string? Description);
 
 [JsonConverter(typeof(StringEnumConverter))]
 public enum TimeSheetStatusDto

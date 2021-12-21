@@ -5,7 +5,7 @@ using TimeReport.Client;
 
 namespace TimeReport.Pages;
 
-public class ActivityLineModel
+public class ActivityModel
 {
     public ActivityDto? Activity { get; set; }
 

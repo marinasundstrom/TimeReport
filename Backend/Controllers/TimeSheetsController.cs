@@ -33,17 +33,26 @@ public class TimeSheetsController : ControllerBase
     {
         var timeSheet = await context.TimeSheets
             .Include(x => x.User)
-            .Include(x => x.Entries)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Entries)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Activity)
+            .Include(x => x.Activities)
             .ThenInclude(x => x.Project)
-            .Include(x => x.Entries)
+            .Include(x => x.Activities)
             .ThenInclude(x => x.Activity)
             .ThenInclude(x => x.Project)
             .AsNoTracking()
             .AsSplitQuery()
             .FirstAsync();
 
+        var activities = timeSheet.Activities
+            .OrderBy(e => e.Created)
+            .Select(e => new TimeSheetActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description),
+                e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description))));
+
         var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.Created, timeSheet.User.Deleted),
-            timeSheet.Entries.OrderBy(e => e.Date).Select(e => new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description)));
+            activities);
 
         return Ok(dto);
     }
@@ -54,11 +63,14 @@ public class TimeSheetsController : ControllerBase
     {
         var query = context.TimeSheets
             .Include(x => x.User)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Project)
-            .Include(x => x.Entries)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Entries)
+            .Include(x => x.Activities)
             .ThenInclude(x => x.Activity)
             .ThenInclude(x => x.Project)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Project)
+            .Include(x => x.Activities)
             .AsSplitQuery();
 
         if(userId is not null)
@@ -76,6 +88,10 @@ public class TimeSheetsController : ControllerBase
             {
                 user = await context.Users.FirstAsync(x => x.Id == userId);
             }
+            else
+            {
+                user = await context.Users.FirstOrDefaultAsync();
+            }
 
             timeSheet = new TimeSheet()
             {
@@ -90,10 +106,16 @@ public class TimeSheetsController : ControllerBase
             await context.SaveChangesAsync();
         }
 
-        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.Created, timeSheet.User.Deleted),
-            timeSheet.Entries.OrderBy(e => e.Date).Select(e => new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description)));
+        var activities = timeSheet.Activities
+            .OrderBy(e => e.Created)
+            .Select(e => new TimeSheetActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description),
+                e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description))))
+            .ToArray();
 
-        return Ok(dto);
+        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.Created, timeSheet.User.Deleted),
+            activities);
+
+        return Ok(dto); 
     }
 
     /*
@@ -279,11 +301,28 @@ public class TimeSheetsController : ControllerBase
                 statusCode: StatusCodes.Status403Forbidden);
         }
 
+        var timeSheetActivity = await context.TimeSheetActivities
+            .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id);
+
+        if(timeSheetActivity is null)
+        {
+            timeSheetActivity = new TimeSheetActivity
+            {
+                Id = Guid.NewGuid().ToString(),
+                TimeSheet = timeSheet,
+                Project = project,
+                Activity = activity
+            };
+
+            context.TimeSheetActivities.Add(timeSheetActivity);
+        }
+
         var entry = new Entry
         {
             Id = Guid.NewGuid().ToString(),
             Project = project,
             Activity = activity,
+            TimeSheetActivity = timeSheetActivity,
             Date = DateOnly.FromDateTime(dto.Date),
             Hours = dto.Hours,
             Description = dto.Description
@@ -428,6 +467,14 @@ public class TimeSheetsController : ControllerBase
         foreach(var entry in entries)
         {
             context.Entries.Remove(entry);
+        }
+
+        var timeSheetActivity = await context.TimeSheetActivities
+            .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id);
+
+        if (timeSheetActivity is not null)
+        {
+            context.TimeSheetActivities.Remove(timeSheetActivity);
         }
 
         await context.SaveChangesAsync();

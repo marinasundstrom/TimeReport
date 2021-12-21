@@ -7,7 +7,7 @@
 
 @implements IDisposable
 @inject ISnackbar Snackbar
-@inject IUsersClient UsersClient 
+@inject IUsersClient UsersClient
 @inject ITimeSheetsClient TimeSheetsClient
 @inject IActivitiesClient ActivitiesClient
 @inject IDialogService DialogService
@@ -25,7 +25,7 @@
     <EditForm Model="@this">
         <ObjectGraphDataAnnotationsValidator />
 
-        <MudTable T="ActivityLineModel" Items="ActivitiesModels" Hover="true" Loading="@isLoading"
+        <MudTable T="ActivityModel" Items="ActivitiesModels" Hover="true" Loading="@isLoading"
                   GroupBy="@_groupDefinition">
 
             <ToolBarContent>
@@ -115,9 +115,9 @@
     UserDto? User { get; set; }
     IEnumerable<UserDto> Users { get; set; } = null;
 
-    List<ActivityLineModel>? ActivitiesModels { get; } = new List<ActivityLineModel>();
+    List<ActivityModel>? ActivitiesModels { get; } = new List<ActivityModel>();
 
-    ActivityLineModel? selectedActivity;
+    ActivityModel? selectedActivity;
     EntryModel? selectedEntry;
 
     string GetUsersName(UserDto user) => !String.IsNullOrEmpty(user.DisplayName) ? user?.DisplayName : $"{user.FirstName} {user?.LastName}";
@@ -128,7 +128,7 @@
         await LoadTimeSheet();
     }
 
-    private TableGroupDefinition<ActivityLineModel> _groupDefinition = new()
+    private TableGroupDefinition<ActivityModel> _groupDefinition = new()
     {
         GroupName = "Project",
         Indentation = false,
@@ -143,7 +143,7 @@
         return null;
     }
 
-    void FocusEntry(ActivityLineModel activity, EntryModel entry)
+    void FocusEntry(ActivityModel activity, EntryModel entry)
     {
         selectedActivity = activity;
         selectedEntry = entry;
@@ -169,7 +169,7 @@
         return $"/Timesheet/{Year}/{Week + 1}";
     }
 
-    async Task OnHoursChanged(double? value, ActivityLineModel activity, EntryModel entry)
+    async Task OnHoursChanged(double? value, ActivityModel activity, EntryModel entry)
     {
         try
         {
@@ -209,7 +209,7 @@
         }
     }
 
-    async Task OnDescriptionChanged(string? value, ActivityLineModel activity, EntryModel entry)
+    async Task OnDescriptionChanged(string? value, ActivityModel activity, EntryModel entry)
     {
         try
         {
@@ -313,22 +313,20 @@
             return;
         }
 
-        var activitiesGroups = timeSheet.Entries
-            .OrderBy(x => x.Date)
-            .GroupBy(x => x.Activity?.Id);
-
-        foreach (var activityGroup in activitiesGroups)
+        foreach (var activity in timeSheet.Activities)
         {
-            var activityModel = new ActivityLineModel
+            var activityModel = new ActivityModel
             {
-                Activity = activities.FirstOrDefault(x => x.Id == activityGroup.Key)
+                Activity = activities.FirstOrDefault(x => x.Id == activity.Id)
             };
+
+            activity.Entries = activity.Entries.OrderBy(x => x.Date).ToList();
 
             ActivitiesModels.Add(activityModel);
 
             foreach (var dayDate in DateTimeHelpers.GetDatesInWeek(DateTime.Now.Year, Week.GetValueOrDefault()))
             {
-                var entry = activityGroup.FirstOrDefault(x => x.Date.Date == dayDate.Date);
+                var entry = activity.Entries.FirstOrDefault(x => x.Date.Date == dayDate.Date);
 
                 EntryModel? entryModel = null;
 
@@ -341,7 +339,7 @@
                         Hours = null
                     };
 
-                    activityModel.Entries.Add(entryModel); ;
+                    activityModel.Entries.Add(entryModel); 
 
                     continue;
                 }
@@ -374,7 +372,7 @@
         if (dialogResult.Cancelled)
             return;
 
-        var obj = (ActivityLineModel)dialogResult.Data;
+        var obj = (ActivityModel)dialogResult.Data;
 
         if (ActivitiesModels.Any(x => x.Activity.Id == obj.Activity.Id))
         {
@@ -385,7 +383,7 @@
         ActivitiesModels.Add(obj);
     }
 
-    async Task DeleteActivity(ActivityLineModel activityLine)
+    async Task DeleteActivity(ActivityModel activityLine)
     {
         var result = await DialogService.ShowMessageBox("Delete activity?", "This will delete all entries for this activity. Are you sure?", "Yes", "No");
 

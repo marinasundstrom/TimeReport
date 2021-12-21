@@ -72,7 +72,7 @@
     }
     async Task OnSubmit()
     {
-        var result = new ActivityLineModel
+        var result = new ActivityModel
         {
             Activity = Activity,
             Entries = GenerateEntriesForWeek(Year, Week).ToList()

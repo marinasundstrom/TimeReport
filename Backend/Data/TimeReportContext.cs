@@ -30,6 +30,8 @@ public class TimeReportContext : DbContext
     public DbSet<Entry> Entries { get; set; } = null!;
 
     public DbSet<TimeSheet> TimeSheets { get; set; } = null!;
+
+    public DbSet<TimeSheetActivity> TimeSheetActivities { get; set; } = null!;
 }
 
 public class User
@@ -89,6 +91,8 @@ public class Entry
 
     public TimeSheet TimeSheet { get; set; } = null!;
 
+    public TimeSheetActivity TimeSheetActivity { get; set; } = null!;
+
     public DateOnly Date { get; set; }
 
     public double? Hours { get; set; }
@@ -114,6 +118,8 @@ public class TimeSheet
 
     //public User User { get; set; } = null!;
 
+    public List<TimeSheetActivity> Activities { get; set; } = new List<TimeSheetActivity>();
+
     public List<Entry> Entries { get; set; } = new List<Entry>();
 }
 
@@ -123,4 +129,19 @@ public enum TimeSheetStatus
     Closed,
     Approved,
     Disapproved
+}
+
+public class TimeSheetActivity
+{
+    public string Id { get; set; } = null!;
+
+    public TimeSheet TimeSheet { get; set; } = null!;
+
+    public Project Project { get; set; } = null!;
+
+    public Activity Activity { get; set; } = null!;
+
+    public List<Entry> Entries { get; set; } = new List<Entry>();
+
+    public DateTime Created { get; set; }
 }

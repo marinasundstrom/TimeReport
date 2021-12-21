@@ -1044,10 +1044,10 @@
           "user": {
             "$ref": "#/components/schemas/UserDto"
           },
-          "entries": {
+          "activities": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EntryDto"
+              "$ref": "#/components/schemas/TimeSheetActivityDto"
             }
           }
         }
@@ -1092,6 +1092,53 @@
           "deleted": {
             "type": "string",
             "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "TimeSheetActivityDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "project": {
+            "$ref": "#/components/schemas/ProjectDto"
+          },
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TimeSheetEntryDto"
+            }
+          }
+        }
+      },
+      "TimeSheetEntryDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "hours": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "description": {
+            "type": "string",
             "nullable": true
           }
         }
