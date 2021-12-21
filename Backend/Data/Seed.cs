@@ -14,30 +14,12 @@ static class Seed
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
 
-        context.Users.AddRange(new User[] {
-                new User()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    FirstName = "Alice",
-                    LastName = "McDonald",
-                    Created = DateTime.Now
-                },
-                new User()
-                {
-                    Id = Guid.NewGuid().ToString(),
-                    FirstName = "Robert",
-                    LastName = "Johnson",
-                    DisplayName = "Bob Johnson",
-                    Created = DateTime.Now
-                }
-            });
-
-        await context.SaveChangesAsync();
-
         var project = new Project
         {
             Id = Guid.NewGuid().ToString(),
-            Name = "Internt"
+            Name = "Internt",
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
         };
 
         context.Projects.Add(project);
@@ -47,7 +29,9 @@ static class Seed
             Id = Guid.NewGuid().ToString(),
             Name = "Bänken",
             MinHours = null,
-            MaxHours = null
+            MaxHours = null,
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
         };
 
         project.Activities.Add(activity);
@@ -57,7 +41,9 @@ static class Seed
             Id = Guid.NewGuid().ToString(),
             Name = "Övrigt",
             MinHours = null,
-            MaxHours = null
+            MaxHours = null,
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
         };
 
         project.Activities.Add(activity3);
@@ -65,7 +51,9 @@ static class Seed
         var project2 = new Project
         {
             Id = Guid.NewGuid().ToString(),
-            Name = "ACME"
+            Name = "ACME",
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
         };
 
         context.Projects.Add(project2);
@@ -75,10 +63,65 @@ static class Seed
             Id = Guid.NewGuid().ToString(),
             Name = "Konsulttid",
             MinHours = null,
-            MaxHours = null
+            MaxHours = null,
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
         };
 
         project2.Activities.Add(activity2);
+
+        await context.SaveChangesAsync();
+
+        var user1 = new User()
+        {
+            Id = Guid.NewGuid().ToString(),
+            SSN = "sdfsdfsd",
+            FirstName = "Alice",
+            LastName = "McDonald",
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
+        };
+
+        var user2 = new User()
+        {
+            Id = Guid.NewGuid().ToString(),
+            SSN = "sfsdfsdf",
+            FirstName = "Robert",
+            LastName = "Johnson",
+            DisplayName = "Bob Johnson",
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
+        };
+
+        context.Users.AddRange(new User[] {
+                user1, user2
+            });
+
+        await context.SaveChangesAsync();
+
+        project.Memberships.Add(new ProjectMembership()
+        {
+            Id = Guid.NewGuid().ToString(),
+            User = user1,
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
+        });
+
+        project.Memberships.Add(new ProjectMembership()
+        {
+            Id = Guid.NewGuid().ToString(),
+            User = user1,
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
+        });
+
+        project2.Memberships.Add(new ProjectMembership()
+        {
+            Id = Guid.NewGuid().ToString(),
+            User = user2,
+            Created = DateTime.Now,
+            CreatedBy = "N/A"
+        });
 
         await context.SaveChangesAsync();
     }

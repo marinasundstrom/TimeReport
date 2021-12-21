@@ -14,6 +14,7 @@ using Microsoft.Extensions.Azure;
 using TimeReport;
 using TimeReport.Data;
 using TimeReport.Hubs;
+using TimeReport.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,10 @@ var Configuration = builder.Configuration;
 services
     .AddControllers()
     .AddNewtonsoftJson();
+
+services.AddHttpContextAccessor();
+
+services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("sv-SE");
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.CurrentCulture;

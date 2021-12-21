@@ -1262,7 +1262,8 @@
           },
           "from": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "thru": {
             "type": "string",
@@ -1308,7 +1309,8 @@
           },
           "from": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "thru": {
             "type": "string",
@@ -1323,7 +1325,8 @@
         "properties": {
           "from": {
             "type": "string",
-            "format": "date-time"
+            "format": "date-time",
+            "nullable": true
           },
           "thru": {
             "type": "string",

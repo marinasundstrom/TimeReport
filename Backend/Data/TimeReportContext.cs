@@ -2,12 +2,17 @@
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Services;
+
 namespace TimeReport.Data;
 
 public class TimeReportContext : DbContext
 {
-    public TimeReportContext(DbContextOptions<TimeReportContext> options) : base(options)
+    private readonly ICurrentUserService _currentUserService;
+
+    public TimeReportContext(DbContextOptions<TimeReportContext> options, ICurrentUserService currentUserService) : base(options)
     {
+        _currentUserService = currentUserService;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -15,6 +20,15 @@ public class TimeReportContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<User>().HasQueryFilter(i => i.Deleted == null);
+
+        modelBuilder.Entity<Project>().HasQueryFilter(i => i.Deleted == null);
+        modelBuilder.Entity<ProjectMembership>().HasQueryFilter(i => i.Deleted == null);
+        modelBuilder.Entity<Activity>().HasQueryFilter(i => i.Deleted == null);
+
+        modelBuilder.Entity<Entry>();
+
+        modelBuilder.Entity<TimeSheet>().HasQueryFilter(i => i.Deleted == null);
+        modelBuilder.Entity<TimeSheetActivity>().HasQueryFilter(i => i.Deleted == null);
 
         modelBuilder.Entity<Entry>()
             .Property(x => x.Date)
@@ -34,26 +48,56 @@ public class TimeReportContext : DbContext
     public DbSet<TimeSheet> TimeSheets { get; set; } = null!;
 
     public DbSet<TimeSheetActivity> TimeSheetActivities { get; set; } = null!;
+
+    public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+    {
+        foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<AuditableEntity> entry in ChangeTracker.Entries<AuditableEntity>())
+        {
+            switch (entry.State)
+            {
+                case EntityState.Added:
+                    entry.Entity.CreatedBy = _currentUserService.UserId;
+                    entry.Entity.Created = DateTime.Now;
+                    break;
+
+                case EntityState.Modified:
+                    entry.Entity.LastModifiedBy = _currentUserService.UserId;
+                    entry.Entity.LastModified = DateTime.Now;
+                    break;
+
+                case EntityState.Deleted:
+                    if (entry.Entity is ISoftDelete softDelete)
+                    {
+                        softDelete.DeletedBy = _currentUserService.UserId;
+                        softDelete.Deleted = DateTime.Now;
+
+                        entry.State = EntityState.Modified;
+                    }
+                    break;
+            }
+        }
+
+        var result = await base.SaveChangesAsync(cancellationToken);
+
+        return result;
+    }
 }
 
-public class User
+public class User : AuditableEntity, ISoftDelete
 {
-    public User()
-    {
-
-    }
-
     public string Id { get; set; } = null!;
+
     public string FirstName { get; set; } = null!;
     public string LastName { get; set; } = null!;
     public string? DisplayName { get; set; }
 
-    public DateTime Created { get; set; }
-    public DateTime? Modified { get; set; }
+    public string SSN { get; set; } = null!;
+
     public DateTime? Deleted { get; set; }
+    public string? DeletedBy { get; set; }
 }
 
-public class Project
+public class Project : AuditableEntity, ISoftDelete
 {
     public string Id { get; set; } = null!;
 
@@ -64,9 +108,12 @@ public class Project
     public List<Activity> Activities { get; set; } = new List<Activity>();
 
     public List<ProjectMembership> Memberships { get; set; } = new List<ProjectMembership>();
+
+    public DateTime? Deleted { get; set; }
+    public string? DeletedBy { get; set; }
 }
 
-public class ProjectMembership
+public class ProjectMembership : AuditableEntity, ISoftDelete
 {
     public string Id { get; set; } = null!;
 
@@ -74,12 +121,15 @@ public class ProjectMembership
 
     public User User { get; set; } = null!;
 
-    public DateTime From { get; set; }
+    public DateTime? From { get; set; }
 
     public DateTime? Thru { get; set; }
+
+    public DateTime? Deleted { get; set; }
+    public string? DeletedBy { get; set; }
 }
 
-public class Activity
+public class Activity : AuditableEntity, ISoftDelete
 {
     public string Id { get; set; } = null!;
 
@@ -96,9 +146,12 @@ public class Activity
     public double? MaxHours { get; set; }
 
     public decimal? HourlyRate { get; set; }
+
+    public DateTime? Deleted { get; set; }
+    public string? DeletedBy { get; set; }
 }
 
-public class Entry
+public class Entry : AuditableEntity
 {
     public string Id { get; set; } = null!;
 
@@ -117,7 +170,7 @@ public class Entry
     public string? Description { get; set; }
 }
 
-public class TimeSheet
+public class TimeSheet : AuditableEntity, ISoftDelete
 {
     public string Id { get; set; } = null!;
 
@@ -138,6 +191,9 @@ public class TimeSheet
     public List<TimeSheetActivity> Activities { get; set; } = new List<TimeSheetActivity>();
 
     public List<Entry> Entries { get; set; } = new List<Entry>();
+
+    public DateTime? Deleted { get; set; }
+    public string? DeletedBy { get; set; }
 }
 
 public enum TimeSheetStatus
@@ -148,7 +204,7 @@ public enum TimeSheetStatus
     Disapproved
 }
 
-public class TimeSheetActivity
+public class TimeSheetActivity : AuditableEntity, ISoftDelete
 {
     public string Id { get; set; } = null!;
 
@@ -160,5 +216,6 @@ public class TimeSheetActivity
 
     public List<Entry> Entries { get; set; } = new List<Entry>();
 
-    public DateTime Created { get; set; }
+    public DateTime? Deleted { get; set; }
+    public string? DeletedBy { get; set; }
 }

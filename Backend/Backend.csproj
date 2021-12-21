@@ -30,8 +30,10 @@
   <ItemGroup>
     <None Remove="EPPlus" />
     <None Remove="Application\" />
+    <None Remove="Services\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Application\" />
+    <Folder Include="Services\" />
   </ItemGroup>
 </Project>
