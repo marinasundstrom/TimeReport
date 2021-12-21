@@ -4,8 +4,10 @@
 @using Microsoft.AspNetCore.SignalR.Client
 @using TimeReport.Client
 @using System.Globalization
+
 @implements IDisposable
 @inject ISnackbar Snackbar
+@inject IUsersClient UsersClient 
 @inject ITimeSheetsClient TimeSheetsClient
 @inject IActivitiesClient ActivitiesClient
 @inject IDialogService DialogService
@@ -28,6 +30,16 @@
 
             <ToolBarContent>
                 <MudButton Variant="@Variant.Filled" Color="Color.Primary" Class="me-2" StartIcon="@Icons.Material.Filled.Add" OnClick="NewActivity">New activity</MudButton>
+                @if (Users is not null)
+                {
+                    <MudSelect Label="User" Variant="Variant.Outlined" Class="me-2" Margin="Margin.Dense" Value="User" ValueChanged="async (UserDto v) => await OnUserChanged(v)" ToStringFunc="GetUsersName"
+                               For="() => User">
+                        @foreach (var user in Users)
+                        {
+                            <MudSelectItem Value="@user" />
+                        }
+                    </MudSelect>
+                }
                 <MudButton StartIcon="@Icons.Material.Filled.List">Templates</MudButton>
                 <MudSpacer />
                 <MudText Typo="@Typo.body1" Class="ms-4 me-2"><b>Status:</b> </MudText>
@@ -100,10 +112,21 @@
     TimeSheetDto timeSheet;
     IEnumerable<ActivityDto> activities = null;
 
+    UserDto? User { get; set; }
+    IEnumerable<UserDto> Users { get; set; } = null;
+
     List<ActivityLineModel>? ActivitiesModels { get; } = new List<ActivityLineModel>();
 
     ActivityLineModel? selectedActivity;
     EntryModel? selectedEntry;
+
+    string GetUsersName(UserDto user) => !String.IsNullOrEmpty(user.DisplayName) ? user?.DisplayName : $"{user.FirstName} {user?.LastName}";
+
+    async Task OnUserChanged(UserDto user)
+    {
+        User = user;
+        await LoadTimeSheet();
+    }
 
     private TableGroupDefinition<ActivityLineModel> _groupDefinition = new()
     {
@@ -235,6 +258,9 @@
 
         try
         {
+            Users = await UsersClient.GetUsersAsync();
+            User = Users.FirstOrDefault();
+
             activities = await ActivitiesClient.GetActivitiesAsync(null);
         }
         catch (Exception e)
@@ -243,7 +269,7 @@
             return;
         }
 
-        await LoadData();
+        await LoadTimeSheet();
 
         StateHasChanged();
     }
@@ -255,12 +281,12 @@
 
     async void OnLocationChanged(object? sender, LocationChangedEventArgs eventArgs)
     {
-        await LoadData();
+        await LoadTimeSheet();
 
         StateHasChanged();
     }
 
-    protected async Task LoadData()
+    protected async Task LoadTimeSheet()
     {
         selectedActivity = null;
         selectedEntry = null;
@@ -278,7 +304,7 @@
 
         try
         {
-            timeSheet = await TimeSheetsClient.GetTimeSheetForWeekAsync(Year.GetValueOrDefault(), Week.GetValueOrDefault());
+            timeSheet = await TimeSheetsClient.GetTimeSheetForWeekAsync(Year.GetValueOrDefault(), Week.GetValueOrDefault(), User.Id);
         }
         catch (Exception e)
         {
@@ -315,7 +341,7 @@
                         Hours = null
                     };
 
-                    activityModel.Entries.Add(entryModel);
+                    activityModel.Entries.Add(entryModel); ;
 
                     continue;
                 }

@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-using TimeReport.Application;
 using TimeReport.Data;
 
 namespace TimeReport.Controllers;
@@ -33,6 +32,7 @@ public class TimeSheetsController : ControllerBase
     public async Task<ActionResult<TimeSheetDto>> GetTimeSheet([FromRoute] string id, CancellationToken cancellationToken)
     {
         var timeSheet = await context.TimeSheets
+            .Include(x => x.User)
             .Include(x => x.Entries)
             .ThenInclude(x => x.Project)
             .Include(x => x.Entries)
@@ -42,7 +42,7 @@ public class TimeSheetsController : ControllerBase
             .AsSplitQuery()
             .FirstAsync();
 
-        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status,
+        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.Created, timeSheet.User.Deleted),
             timeSheet.Entries.OrderBy(e => e.Date).Select(e => new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description)));
 
         return Ok(dto);
@@ -50,24 +50,39 @@ public class TimeSheetsController : ControllerBase
 
     [HttpGet("{year}/{week}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<TimeSheetDto>> GetTimeSheetForWeek([FromRoute] int year, [FromRoute] int week, CancellationToken cancellationToken)
+    public async Task<ActionResult<TimeSheetDto>> GetTimeSheetForWeek([FromRoute] int year, [FromRoute] int week, [FromQuery] string? userId, CancellationToken cancellationToken)
     {
-        var timeSheet = await context.TimeSheets
+        var query = context.TimeSheets
+            .Include(x => x.User)
             .Include(x => x.Entries)
             .ThenInclude(x => x.Project)
             .Include(x => x.Entries)
             .ThenInclude(x => x.Activity)
             .ThenInclude(x => x.Project)
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Year == year && x.Week == week);
+            .AsSplitQuery();
+
+        if(userId is not null)
+        {
+            query = query.Where(x => x.User.Id == userId);
+        }
+
+        var timeSheet = await query.FirstOrDefaultAsync(x => x.Year == year && x.Week == week);
 
         if (timeSheet is null)
         {
+            User? user = null;
+
+            if(userId is not null)
+            {
+                user = await context.Users.FirstAsync(x => x.Id == userId);
+            }
+
             timeSheet = new TimeSheet()
             {
                 Id = Guid.NewGuid().ToString(),
                 Year = year,
-                Week = week
+                Week = week,
+                User = user
             };
 
             context.TimeSheets.Add(timeSheet);
@@ -75,7 +90,7 @@ public class TimeSheetsController : ControllerBase
             await context.SaveChangesAsync();
         }
 
-        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status,
+        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.Created, timeSheet.User.Deleted),
             timeSheet.Entries.OrderBy(e => e.Date).Select(e => new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description)));
 
         return Ok(dto);

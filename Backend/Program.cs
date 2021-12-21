@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 
 using TimeReport;
-using TimeReport.Application;
 using TimeReport.Data;
 using TimeReport.Hubs;
 

@@ -29,5 +29,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Remove="EPPlus" />
+    <None Remove="Application\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Application\" />
   </ItemGroup>
 </Project>

@@ -9,7 +9,7 @@ public record class ProjectDto(string Id, string Name, string? Description);
 
 public record class ActivityDto(string Id, string Name, string? Description, ProjectDto Project);
 
-public record class TimeSheetDto(string Id, int Year, int Week, TimeSheetStatusDto Status, IEnumerable<EntryDto> Entries);
+public record class TimeSheetDto(string Id, int Year, int Week, TimeSheetStatusDto Status, UserDto User, IEnumerable<EntryDto> Entries);
 
 [JsonConverter(typeof(StringEnumConverter))]
 public enum TimeSheetStatusDto
@@ -36,3 +36,6 @@ public record class UpdateEntryDto2(string? Id, string? ProjectId, string? Activ
 public record class Series(string Name, IEnumerable<decimal> Data);
 
 public record class Data(string[] Labels, IEnumerable<Series> Series);
+
+
+public record class UserDto(string Id, string FirstName, string LastName, string? DisplayName, DateTime Created, DateTime? Deleted);

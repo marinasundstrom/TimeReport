@@ -4,7 +4,7 @@ namespace TimeReport.Hubs;
 
 public interface IItemsClient
 {
-    Task ItemAdded(Item item);
+    Task ItemAdded(User item);
 
     Task ItemDeleted(string id, string name);
 

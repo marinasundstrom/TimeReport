@@ -1,5 +1,7 @@
 using System.Globalization;
 
+using Microsoft.EntityFrameworkCore;
+
 using TimeReport.Data;
 
 static class Seed 
@@ -12,12 +14,23 @@ static class Seed
         await context.Database.EnsureDeletedAsync();
         await context.Database.EnsureCreatedAsync();
 
-        if (!context.Items.Any())
+        if (!context.Users.Any())
         {
-            context.Items.AddRange(new Item[] {
-                new Item(Guid.NewGuid().ToString(), "Hat", "Green hat")
+            context.Users.AddRange(new User[] {
+                new User()
                 {
-                    CreatedAt = DateTime.Now
+                    Id = Guid.NewGuid().ToString(),
+                    FirstName = "Test",
+                    LastName = "Testsson",
+                    Created = DateTime.Now
+                },
+                new User()
+                {
+                    Id = Guid.NewGuid().ToString(),
+                    FirstName = "Admin",
+                    LastName = String.Empty,
+                    DisplayName = "Admin",
+                    Created = DateTime.Now
                 }
             });
 
@@ -75,8 +88,9 @@ static class Seed
             var timeSheet = new TimeSheet
             {
                 Id = Guid.NewGuid().ToString(),
+                User = await context.Users.FirstAsync(),
                 Year = DateTime.Now.Year,
-                Week = ISOWeek.GetWeekOfYear(DateTime.Now),
+                Week = ISOWeek.GetWeekOfYear(DateTime.Now)
             };
 
             timeSheet.Entries.AddRange(new[] {

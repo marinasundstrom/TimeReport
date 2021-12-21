@@ -1,0 +1,85 @@
+﻿@page "/users"
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject IUsersClient UsersClient
+
+<MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Users</MudText>
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewUserClicked">New User</MudButton>
+
+<MudTable T="UserDto" ServerData="@(new Func<TableState, Task<TableData<UserDto>>>(ServerReload))"
+          Hover="true" @ref="table" Class="mt-4">
+    <HeaderContent>
+        <MudTh>First Name</MudTh>
+        <MudTh>Last Name</MudTh>
+        <MudTh>Display Name</MudTh>
+        <MudTh></MudTh>
+    </HeaderContent>
+    <RowTemplate Context="user">
+        <MudTd DataLabel="First Name">@user.FirstName</MudTd>
+        <MudTd DataLabel="Last Name">@user.LastName</MudTd>
+        <MudTd DataLabel="Last Name">@user.DisplayName</MudTd>
+        <MudTd>
+            <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditUserClicked(user)" />
+            @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No matching records found</MudText>
+    </NoRecordsContent>
+    <LoadingContent>
+        <MudText>Loading...</MudText>
+    </LoadingContent>
+    <PagerContent>
+        <MudTablePager />
+    </PagerContent>
+</MudTable>
+
+@code {
+    MudTable<UserDto> table;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    private async Task<TableData<UserDto>> ServerReload(TableState state)
+    {
+        var result = await UsersClient.GetUsersAsync();
+
+        return new TableData<UserDto>() { TotalItems = result.Count(), Items = result };
+    }
+
+    private void GotToUser(UserDto user)
+    {
+        NavigationManager.NavigateTo($"/users/{user.Id}");
+    }
+
+    private async Task OnNewUserClicked()
+    {
+        var dialogRef = DialogService.Show<UserDialog>("New User");
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table.ReloadServerData();
+    }
+
+    private async Task OnEditUserClicked(UserDto user)
+    {
+        DialogParameters parameters = new();
+        parameters.Add(nameof(UserDialog.UserId), user.Id);
+
+        var dialogRef = DialogService.Show<UserDialog>($"Edit {user.FirstName}", parameters);
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table.ReloadServerData();
+    }
+}

@@ -14,14 +14,14 @@ public class TimeReportContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<Item>().HasQueryFilter(i => i.DeletedAt == null);
+        modelBuilder.Entity<User>().HasQueryFilter(i => i.Deleted == null);
 
         modelBuilder.Entity<Entry>()
             .Property(x => x.Date)
             .HasConversion(x => x.ToDateTime(TimeOnly.Parse("01:00")), x => DateOnly.FromDateTime(x));
     }
 
-    public DbSet<Item> Items { get; set; } = null!;
+    public DbSet<User> Users { get; set; } = null!;
 
     public DbSet<Project> Projects { get; set; } = null!;
 
@@ -32,27 +32,21 @@ public class TimeReportContext : DbContext
     public DbSet<TimeSheet> TimeSheets { get; set; } = null!;
 }
 
-public class Item
+public class User
 {
-    public Item()
+    public User()
     {
 
-    }
-
-    public Item(string id, string name, string? description = null)
-    {
-        Id = id;
-        Name = name;
-        Description = description;
     }
 
     public string Id { get; set; } = null!;
-    public string Name { get; set; } = null!;
-    public string? Description { get; set; } = null!;
-    public string? Image { get; set; } = null!;
-    public DateTime CreatedAt { get; set; }
-    public DateTime? ModifiedAt { get; set; }
-    public DateTime? DeletedAt { get; set; }
+    public string FirstName { get; set; } = null!;
+    public string LastName { get; set; } = null!;
+    public string? DisplayName { get; set; }
+
+    public DateTime Created { get; set; }
+    public DateTime? Modified { get; set; }
+    public DateTime? Deleted { get; set; }
 }
 
 public class Project
@@ -105,6 +99,8 @@ public class Entry
 public class TimeSheet
 {
     public string Id { get; set; } = null!;
+
+    public User? User { get; set; }
 
     public int Year { get; set; }
 
