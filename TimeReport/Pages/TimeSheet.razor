@@ -58,11 +58,12 @@
                         <MudText Typo="Typo.subtitle1">@date.ToShortDateString()</MudText>
                     </MudTh>
                 }
+                <MudTh>Total</MudTh>
                 <MudTh></MudTh>
             </HeaderContent>
 
             <GroupHeaderTemplate Context="c">
-                <MudTh Class="mud-table-cell-custom-group" colspan="10">
+                <MudTh Class="mud-table-cell-custom-group" colspan="11">
                     <MudText Typo="Typo.h6">@($"{((dynamic)c.Key).Name}")</MudText>
                 </MudTh>
             </GroupHeaderTemplate>
@@ -79,6 +80,9 @@
                         </div>
                     </MudTd>
                 }
+                <MudTd DataLabel="Total">
+                    <span>@activityLine.TotalHours h</span>
+                </MudTd>
                 <MudTd>
                     <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteActivity(activityLine)" />
                 </MudTd>

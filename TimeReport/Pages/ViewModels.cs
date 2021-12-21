@@ -11,6 +11,8 @@ public class ActivityModel
 
     [ValidateComplexType]
     public List<EntryModel> Entries { get; set; } = new List<EntryModel>();
+
+    public double TotalHours => Entries.Sum(e => e.Hours.GetValueOrDefault());
 }
 
 public class EntryModel
