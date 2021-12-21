@@ -106,7 +106,6 @@
     </EditForm>
 }
 
-
 @code {
     bool isLoading = false;
     TimeSheetDto timeSheet;
@@ -119,6 +118,162 @@
 
     ActivityModel? selectedActivity;
     EntryModel? selectedEntry;
+
+    [Parameter]
+    public int? Year { get; set; }
+
+    [Parameter]
+    public int? Week { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        NavigationManager.LocationChanged += OnLocationChanged;
+
+        try
+        {
+            Users = await UsersClient.GetUsersAsync();
+            User = Users.FirstOrDefault();
+
+            activities = await ActivitiesClient.GetActivitiesAsync(null);
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add("Could not load data from server.", Severity.Error);
+            return;
+        }
+
+        await LoadTimeSheet();
+
+        StateHasChanged();
+    }
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+    }
+
+    async void OnLocationChanged(object? sender, LocationChangedEventArgs eventArgs)
+    {
+        await LoadTimeSheet();
+
+        StateHasChanged();
+    }
+
+    protected async Task LoadTimeSheet()
+    {
+        selectedActivity = null;
+        selectedEntry = null;
+        ActivitiesModels.Clear();
+
+        isLoading = true;
+
+        var date = DateTime.Now.Date;
+
+        if (Year is null && Week is null)
+        {
+            Year = date.Year;
+            Week = date.GetCurrentWeek();
+        }
+
+        try
+        {
+            timeSheet = await TimeSheetsClient.GetTimeSheetForWeekAsync(Year.GetValueOrDefault(), Week.GetValueOrDefault(), User.Id);
+        }
+        catch (Exception e)
+        {
+            Snackbar.Add("Failed to download timesheet", Severity.Error);
+            isLoading = false;
+            return;
+        }
+
+        foreach (var activity in timeSheet.Activities)
+        {
+            var activityModel = new ActivityModel
+            {
+                Activity = activities.FirstOrDefault(x => x.Id == activity.Id)
+            };
+
+            activity.Entries = activity.Entries.OrderBy(x => x.Date).ToList();
+
+            ActivitiesModels.Add(activityModel);
+
+            foreach (var dayDate in DateTimeHelpers.GetDatesInWeek(DateTime.Now.Year, Week.GetValueOrDefault()))
+            {
+                var entry = activity.Entries.FirstOrDefault(x => x.Date.Date == dayDate.Date);
+
+                EntryModel? entryModel = null;
+
+                if (entry is null)
+                {
+                    entryModel = new EntryModel
+                    {
+                        Id = null,
+                        Date = dayDate,
+                        Hours = null
+                    };
+
+                    activityModel.Entries.Add(entryModel);
+
+                    continue;
+                }
+
+                entryModel = new EntryModel
+                {
+                    Id = entry.Id,
+                    Date = entry.Date.Date,
+                    Hours = entry.Hours,
+                    Description = entry.Description
+                };
+
+                activityModel.Entries.Add(entryModel);
+            }
+        }
+
+        isLoading = false;
+    }
+
+    async Task NewActivity()
+    {
+        DialogParameters parameters = new();
+        //parameters.Add(nameof(NewTimeSheetActivityDialog.Activities), activities);
+        parameters.Add(nameof(NewTimeSheetActivityDialog.Year), Year);
+        parameters.Add(nameof(NewTimeSheetActivityDialog.Week), Week);
+
+        var dialogRef = DialogService.Show<NewTimeSheetActivityDialog>("New activity", parameters);
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        var obj = (ActivityModel)dialogResult.Data;
+
+        if (ActivitiesModels.Any(x => x.Activity.Id == obj.Activity.Id))
+        {
+            Snackbar.Add("Activity has already been added.", Severity.Info);
+            return;
+        }
+
+        ActivitiesModels.Add(obj);
+    }
+
+    async Task DeleteActivity(ActivityModel activityLine)
+    {
+        var result = await DialogService.ShowMessageBox("Delete activity?", "This will delete all entries for this activity. Are you sure?", "Yes", "No");
+
+        if (!result.GetValueOrDefault())
+            return;
+
+        try
+        {
+            await TimeSheetsClient.DeleteActvityEntriesAsync(timeSheet.Id, activityLine.Activity.Id);
+
+            ActivitiesModels.Remove(activityLine);
+        }
+        catch (Exception)
+        {
+            Snackbar.Add("Failed to delete activity", Severity.Error);
+        }
+    }
 
     string GetUsersName(UserDto user) => !String.IsNullOrEmpty(user.DisplayName) ? user?.DisplayName : $"{user.FirstName} {user?.LastName}";
 
@@ -246,160 +401,4 @@
 
     bool IsWeekend(DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
 
-    [Parameter]
-    public int? Year { get; set; }
-
-    [Parameter]
-    public int? Week { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        NavigationManager.LocationChanged += OnLocationChanged;
-
-        try
-        {
-            Users = await UsersClient.GetUsersAsync();
-            User = Users.FirstOrDefault();
-
-            activities = await ActivitiesClient.GetActivitiesAsync(null);
-        }
-        catch (Exception e)
-        {
-            Snackbar.Add("Could not load data from server.", Severity.Error);
-            return;
-        }
-
-        await LoadTimeSheet();
-
-        StateHasChanged();
-    }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-    }
-
-    async void OnLocationChanged(object? sender, LocationChangedEventArgs eventArgs)
-    {
-        await LoadTimeSheet();
-
-        StateHasChanged();
-    }
-
-    protected async Task LoadTimeSheet()
-    {
-        selectedActivity = null;
-        selectedEntry = null;
-        ActivitiesModels.Clear();
-
-        isLoading = true;
-
-        var date = DateTime.Now.Date;
-
-        if (Year is null && Week is null)
-        {
-            Year = date.Year;
-            Week = date.GetCurrentWeek();
-        }
-
-        try
-        {
-            timeSheet = await TimeSheetsClient.GetTimeSheetForWeekAsync(Year.GetValueOrDefault(), Week.GetValueOrDefault(), User.Id);
-        }
-        catch (Exception e)
-        {
-            Snackbar.Add("Failed to download timesheet", Severity.Error);
-            isLoading = false;
-            return;
-        }
-
-        foreach (var activity in timeSheet.Activities)
-        {
-            var activityModel = new ActivityModel
-            {
-                Activity = activities.FirstOrDefault(x => x.Id == activity.Id)
-            };
-
-            activity.Entries = activity.Entries.OrderBy(x => x.Date).ToList();
-
-            ActivitiesModels.Add(activityModel);
-
-            foreach (var dayDate in DateTimeHelpers.GetDatesInWeek(DateTime.Now.Year, Week.GetValueOrDefault()))
-            {
-                var entry = activity.Entries.FirstOrDefault(x => x.Date.Date == dayDate.Date);
-
-                EntryModel? entryModel = null;
-
-                if (entry is null)
-                {
-                    entryModel = new EntryModel
-                    {
-                        Id = null,
-                        Date = dayDate,
-                        Hours = null
-                    };
-
-                    activityModel.Entries.Add(entryModel); 
-
-                    continue;
-                }
-
-                entryModel = new EntryModel
-                {
-                    Id = entry.Id,
-                    Date = entry.Date.Date,
-                    Hours = entry.Hours,
-                    Description = entry.Description
-                };
-
-                activityModel.Entries.Add(entryModel);
-            }
-        }
-
-        isLoading = false;
-    }
-
-    async Task NewActivity()
-    {
-        DialogParameters parameters = new();
-        //parameters.Add(nameof(NewTimeSheetActivityDialog.Activities), activities);
-        parameters.Add(nameof(NewTimeSheetActivityDialog.Year), Year);
-        parameters.Add(nameof(NewTimeSheetActivityDialog.Week), Week);
-
-        var dialogRef = DialogService.Show<NewTimeSheetActivityDialog>("New activity", parameters);
-        var dialogResult = await dialogRef.Result;
-
-        if (dialogResult.Cancelled)
-            return;
-
-        var obj = (ActivityModel)dialogResult.Data;
-
-        if (ActivitiesModels.Any(x => x.Activity.Id == obj.Activity.Id))
-        {
-            Snackbar.Add("Activity has already been added.", Severity.Info);
-            return;
-        }
-
-        ActivitiesModels.Add(obj);
-    }
-
-    async Task DeleteActivity(ActivityModel activityLine)
-    {
-        var result = await DialogService.ShowMessageBox("Delete activity?", "This will delete all entries for this activity. Are you sure?", "Yes", "No");
-
-        if (!result.GetValueOrDefault())
-            return;
-
-        try
-        {
-            await TimeSheetsClient.DeleteActvityEntriesAsync(timeSheet.Id, activityLine.Activity.Id);
-
-            ActivitiesModels.Remove(activityLine);
-        }
-        catch (Exception)
-        {
-            Snackbar.Add("Failed to delete activity", Severity.Error);
-        }
-    }
 }
-
