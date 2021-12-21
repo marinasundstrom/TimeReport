@@ -2,7 +2,9 @@
 
 Time reporting tool.
 
-Built with Blazor. Components are from MudBlazor. It is multi-platform.
+Built with Blazor. Components are from MudBlazor.
+
+Watch [video](https://youtu.be/070M48Cbe38)
 
 ## How to run
 
