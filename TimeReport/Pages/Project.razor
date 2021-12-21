@@ -60,7 +60,7 @@
             <MudTd DataLabel="Name">@membership.User.FirstName @membership.User.LastName</MudTd>
             <MudTd>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditMembershipClicked(membership)" />
-                @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteMembership(membership)" />
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -176,6 +176,19 @@
 
         if (dialogResult.Cancelled)
             return;
+
+        table2.ReloadServerData();
+    }
+
+    async Task DeleteMembership(ProjectMembershipDto membership)
+    {
+        var modalResult = await DialogService.ShowMessageBox($"Revoke the membership for {membership.User.FirstName}?", "If you regret it, you can just add the user back later.", yesText: "Yes", noText: "No");
+        if (!modalResult.GetValueOrDefault())
+        {
+            return;
+        }
+
+        await ProjectsClient.DeleteProjectMembershipAsync(ProjectId, membership.Id);
 
         table2.ReloadServerData();
     }
