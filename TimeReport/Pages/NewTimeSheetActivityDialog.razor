@@ -1,4 +1,5 @@
 ﻿@using System.ComponentModel.DataAnnotations
+@inject IProjectsClient ProjectsClient
 @inject IActivitiesClient ActivitiesClient
 
 <EditForm Model="@this" OnValidSubmit="OnSubmit">
@@ -6,6 +7,17 @@
 
     <MudDialog>
         <DialogContent>
+            @if (Projects is not null)
+            {
+                <MudSelect T="ProjectDto" Label="Project" Class="mb-6" Variant="Variant.Outlined" Value="Project" ValueChanged="OnProjectChanged" ToStringFunc="x => x?.Name"
+                           For="() => Project">
+                    @foreach (var project in Projects)
+                    {
+                        <MudSelectItem Value="@project" />
+                    }
+                </MudSelect>
+            }
+
             @if (Activities is not null)
             {
                 <MudSelect T="ActivityDto" Label="Activity" Class="mb-6" Variant="Variant.Outlined" @bind-Value="Activity" ToStringFunc="x => x?.Name"
@@ -16,7 +28,6 @@
                     }
                 </MudSelect>
             }
-
         </DialogContent>
         <DialogActions>
             <MudButton OnClick="() => Modal.Cancel()">Cancel</MudButton>
@@ -30,6 +41,9 @@
     //public IEnumerable<ProjectDto> Projects { get; set; }
 
     [Parameter]
+    public IEnumerable<ProjectDto> Projects { get; set; }
+
+    [Parameter]
     public IEnumerable<ActivityDto> Activities { get; set; }
 
     [CascadingParameter] MudDialogInstance Modal { get; set; }
@@ -40,17 +54,22 @@
     [Parameter]
     public int Week { get; set; }
 
-    //[Required]
-    //public ProjectDto Project { get; set; }
+    public ProjectDto? Project { get; set; }
 
-    [Required]
-    public ActivityDto Activity { get; set; }
+    public ActivityDto? Activity { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
-        Activities = await ActivitiesClient.GetActivitiesAsync(null);
+        Projects = await ProjectsClient.GetProjectsAsync();
     }
 
+    private async Task OnProjectChanged(ProjectDto project) 
+    {
+        Activities = await ActivitiesClient.GetActivitiesAsync(project.Id);
+
+        Project = project;
+        Activity = Activities?.FirstOrDefault();
+    }
     async Task OnSubmit()
     {
         var result = new ActivityLineModel
