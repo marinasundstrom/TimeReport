@@ -27,7 +27,7 @@ public class UsersController : ControllerBase
             .AsSplitQuery()
             .ToListAsync();
 
-        var dto = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.Created, user.Deleted));
+        var dto = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted));
         return Ok(dto);
     }
 
@@ -45,7 +45,7 @@ public class UsersController : ControllerBase
             return NotFound();
         }
 
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.Created, user.Deleted);
+        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted);
         return Ok(dto);
     }
 
@@ -58,14 +58,15 @@ public class UsersController : ControllerBase
             Id = Guid.NewGuid().ToString(),
             FirstName = createUserDto.FirstName,
             LastName = createUserDto.LastName,
-            DisplayName = createUserDto.DisplayName
+            DisplayName = createUserDto.DisplayName,
+            SSN = createUserDto.SSN
         };
 
         context.Users.Add(user);
 
         await context.SaveChangesAsync();
 
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.Created, user.Deleted);
+        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted);
         return Ok(dto);
     }
 
@@ -85,10 +86,11 @@ public class UsersController : ControllerBase
         user.FirstName = updateUserDetailsDto.FirstName;
         user.LastName = updateUserDetailsDto.LastName;
         user.DisplayName = updateUserDetailsDto.DisplayName;
+        user.SSN = updateUserDetailsDto.SSN;
 
         await context.SaveChangesAsync();
 
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.Created, user.Deleted);
+        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted);
         return Ok(dto);
     }
 
@@ -113,6 +115,6 @@ public class UsersController : ControllerBase
     }
 }
 
-public record class CreateUserDto(string FirstName, string LastName, string? DisplayName);
+public record class CreateUserDto(string FirstName, string LastName, string? DisplayName, string SSN);
 
-public record class UpdateUserDetailsDto(string FirstName, string LastName, string? DisplayName);
+public record class UpdateUserDetailsDto(string FirstName, string LastName, string? DisplayName, string SSN);

@@ -13,12 +13,14 @@
         <MudTh>First Name</MudTh>
         <MudTh>Last Name</MudTh>
         <MudTh>Display Name</MudTh>
+        <MudTh>SSN</MudTh>
         <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate Context="user">
         <MudTd DataLabel="First Name">@user.FirstName</MudTd>
         <MudTd DataLabel="Last Name">@user.LastName</MudTd>
         <MudTd DataLabel="Last Name">@user.DisplayName</MudTd>
+        <MudTd DataLabel="SSN">@user.Ssn</MudTd>
         <MudTd>
             <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditUserClicked(user)" />
             @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@

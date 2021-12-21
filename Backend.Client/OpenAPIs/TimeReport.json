@@ -1289,6 +1289,9 @@
             "type": "string",
             "nullable": true
           },
+          "ssn": {
+            "type": "string"
+          },
           "created": {
             "type": "string",
             "format": "date-time"
@@ -1557,6 +1560,9 @@
           "displayName": {
             "type": "string",
             "nullable": true
+          },
+          "ssn": {
+            "type": "string"
           }
         }
       },
@@ -1573,6 +1579,9 @@
           "displayName": {
             "type": "string",
             "nullable": true
+          },
+          "ssn": {
+            "type": "string"
           }
         }
       }

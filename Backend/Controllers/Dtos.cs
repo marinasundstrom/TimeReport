@@ -42,7 +42,7 @@ public record class Series(string Name, IEnumerable<decimal> Data);
 public record class Data(string[] Labels, IEnumerable<Series> Series);
 
 
-public record class UserDto(string Id, string FirstName, string LastName, string? DisplayName, DateTime Created, DateTime? Deleted);
+public record class UserDto(string Id, string FirstName, string LastName, string? DisplayName, string SSN, DateTime Created, DateTime? Deleted);
 
 
 public record class ProjectMembershipDto(string Id, ProjectDto Projects, UserDto User, DateTime? From, DateTime? Thru);
