@@ -19,20 +19,48 @@ public class TimeReportContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.Entity<User>().HasQueryFilter(i => i.Deleted == null);
+        modelBuilder.Entity<User>(e =>
+        {
+            e.ToTable("Users", t => t.IsTemporal());
+            e.HasQueryFilter(i => i.Deleted == null);
+        });
 
-        modelBuilder.Entity<Project>().HasQueryFilter(i => i.Deleted == null);
-        modelBuilder.Entity<ProjectMembership>().HasQueryFilter(i => i.Deleted == null);
-        modelBuilder.Entity<Activity>().HasQueryFilter(i => i.Deleted == null);
+        modelBuilder.Entity<Project>(e =>
+        {
+            e.ToTable("Projects", t => t.IsTemporal());
+            e.HasQueryFilter(i => i.Deleted == null);
+        });
 
-        modelBuilder.Entity<Entry>();
+        modelBuilder.Entity<ProjectMembership>(e =>
+        {
+            e.ToTable("ProjectMemberships", t => t.IsTemporal());
+            e.HasQueryFilter(i => i.Deleted == null);
+        });
+        modelBuilder.Entity<Activity>(e =>
+        {
+            e.ToTable("Activities", t => t.IsTemporal());
+            e.HasQueryFilter(i => i.Deleted == null);
+        });
 
-        modelBuilder.Entity<TimeSheet>().HasQueryFilter(i => i.Deleted == null);
-        modelBuilder.Entity<TimeSheetActivity>().HasQueryFilter(i => i.Deleted == null);
+        modelBuilder.Entity<Entry>(e =>
+        {
+            e.Property(x => x.Date)
+                .HasConversion(x => x.ToDateTime(TimeOnly.Parse("01:00")), x => DateOnly.FromDateTime(x));
 
-        modelBuilder.Entity<Entry>()
-            .Property(x => x.Date)
-            .HasConversion(x => x.ToDateTime(TimeOnly.Parse("01:00")), x => DateOnly.FromDateTime(x));
+            e.ToTable("Entries", t => t.IsTemporal());
+        });
+
+        modelBuilder.Entity<TimeSheet>(e =>
+        {
+            e.ToTable("TimeSheets", t => t.IsTemporal());
+            e.HasQueryFilter(i => i.Deleted == null);
+        });
+
+        modelBuilder.Entity<TimeSheetActivity>(e =>
+        {
+            e.ToTable("TimeSheetActivities", t => t.IsTemporal());
+            e.HasQueryFilter(i => i.Deleted == null);
+        });
     }
 
     public DbSet<User> Users { get; set; } = null!;
