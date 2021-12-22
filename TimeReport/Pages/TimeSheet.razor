@@ -337,8 +337,12 @@
 
     async Task OnHoursChanged(double? value, ActivityModel activity, EntryModel entry)
     {
+        var oldValue = entry.Hours;
+        entry.Hours = value;
+
         try
         {
+
             if (entry.Id is null)
             {
                 var a = activity.Activity;
@@ -362,21 +366,26 @@
                     Description = entry.Description
                 });
             }
-
-            entry.Hours = value;
         }
         catch (ApiException<ProblemDetails> exc)
         {
+            entry.Hours = oldValue;
+
             Snackbar.Add(exc.Result.Detail, Severity.Error);
         }
         catch
         {
+            entry.Hours = oldValue;
+
             Snackbar.Add("Failed to update hours", Severity.Error);
         }
     }
 
     async Task OnDescriptionChanged(string? value, ActivityModel activity, EntryModel entry)
     {
+        var oldValue = entry.Description;
+        entry.Description = value;
+
         try
         {
             if (entry.Id is null)
@@ -401,11 +410,11 @@
                     Description = value
                 });
             }
-
-            entry.Description = value;
         }
         catch
         {
+            entry.Description = oldValue;
+
             Snackbar.Add("Failed to update description", Severity.Error);
         }
     }
