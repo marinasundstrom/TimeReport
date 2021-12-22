@@ -17,11 +17,11 @@
                     <MudDateRangePicker Label="Time span" HelperText="Select a date range" @bind-DateRange="selectedDateRange" />
                 </MudItem>
                 <MudItem xs="12" md="4">
-                    <MudSelect T="UserDto" Label="User" HelperText="Select a user" Value="user" ValueChanged="OnUserChanged" Clearable=true ToStringFunc="x => ( x?.FirstName ?? AllLabel)">
+                    <MudSelect T="UserDto" Label="User" HelperText="Select a user" Value="user" ValueChanged="OnUserChanged" Clearable=true ToStringFunc="x => ( x?.GetDisplayName() ?? AllLabel)">
                         <MudSelectItem Value="@((UserDto)null)">@AllLabel</MudSelectItem>
                         @foreach (var u in users)
                         {
-                            <MudSelectItem Value="@u">@u.FirstName @u.LastName</MudSelectItem>
+                            <MudSelectItem Value="@u">@u.GetDisplayName()</MudSelectItem>
                         }
                     </MudSelect>
                 </MudItem>

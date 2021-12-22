@@ -57,7 +57,7 @@
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate Context="membership">
-            <MudTd DataLabel="Name">@membership.User.FirstName @membership.User.LastName</MudTd>
+            <MudTd DataLabel="Name">@membership.User?.GetDisplayName()</MudTd>
             <MudTd>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditMembershipClicked(membership)" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteMembership(membership)" />

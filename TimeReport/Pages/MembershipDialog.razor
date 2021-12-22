@@ -10,7 +10,7 @@
 
             @if (MembershipId is null && users is not null)
             {
-                <MudSelect T="UserDto" Label="User" Class="mb-6" Variant="Variant.Outlined" @bind-Value="User" ToStringFunc="x => x?.FirstName"
+                <MudSelect T="UserDto" Label="User" Class="mb-6" Variant="Variant.Outlined" @bind-Value="User" ToStringFunc="u => u?.GetDisplayName()"
                            For="() => User">
                     @foreach (var user in users)
                     {
