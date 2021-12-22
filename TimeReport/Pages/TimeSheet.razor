@@ -76,7 +76,7 @@
                 {
                     <MudTd DataLabel="@entry.Date.DayOfWeek.ToString()">
                         <div @onclick="() => FocusEntry(activityLine, entry)">
-                            <MudNumericField T="double?" Class="@((IsWeekend(entry.Date) ? "weekendEntry" : null) + " " + IsEntrySelectedCss(entry))" Value="entry.Hours" ValueChanged="(value) => OnHoursChanged(value, activityLine, entry)" Variant="Variant.Filled" Margin="Margin.Dense" HideSpinButtons="true" />
+                            <MudNumericField T="double?" Class="@((IsWeekend(entry.Date) ? "weekendEntry" : null) + " " + IsEntrySelectedCss(entry))" Immediate="true" DebounceInterval="debounceInterval" Value="entry.Hours" ValueChanged="(value) => OnHoursChanged(value, activityLine, entry)" Variant="Variant.Filled" Margin="Margin.Dense" HideSpinButtons="true" />
                         </div>
                     </MudTd>
                 }
@@ -103,7 +103,7 @@
             <MudCard Class="mt-4">
                 <MudCardContent>
                     <MudText Typo="@Typo.h6" Class="mb-2">@selectedActivity.Activity.Project.Name: @selectedActivity.Activity.Name - @selectedEntry.Date.ToShortDateString()</MudText>
-                    <MudTextField T="string?" Value="selectedEntry.Description" ValueChanged="(value) => OnDescriptionChanged(value, selectedActivity, selectedEntry)" Variant="Variant.Filled" Label="Description" Lines="3" />
+                    <MudTextField T="string?" Immediate="true" DebounceInterval="debounceInterval" Value="selectedEntry.Description" ValueChanged="(value) => OnDescriptionChanged(value, selectedActivity, selectedEntry)" Variant="Variant.Filled" Label="Description" Lines="3" />
                 </MudCardContent>
             </MudCard>
         }
@@ -111,6 +111,9 @@
 }
 
 @code {
+
+    double debounceInterval = 500;
+
     bool isLoading = false;
     TimeSheetDto timeSheet;
     IEnumerable<ActivityDto> activities = null;

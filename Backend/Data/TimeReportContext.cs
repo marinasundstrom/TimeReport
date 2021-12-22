@@ -156,6 +156,9 @@ public class Activity : AuditableEntity, ISoftDelete
     /// </summary>
     public double? MaxHoursPerDay { get; set; }
 
+    /// <summary>
+    /// Hourly rate. Positive value = Revenue and Negative value = Cost
+    /// </summary>
     public decimal? HourlyRate { get; set; }
 
     public DateTime? Deleted { get; set; }
