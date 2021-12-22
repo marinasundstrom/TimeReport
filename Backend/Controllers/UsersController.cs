@@ -135,6 +135,63 @@ public class UsersController : ControllerBase
 
         return Ok(dto);
     }
+
+    [HttpGet("{id}/Statistics")]
+    public async Task<ActionResult<Data>> GetStatistics(string id)
+    {
+        var projects = await context.Projects
+            .Include(x => x.Memberships)
+            .ThenInclude(x => x.User)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Entries)
+            .ThenInclude(x => x.TimeSheet)
+            .ThenInclude(x => x.User)
+            .Where(x => x.Memberships.Any(x => x.User.Id == id))
+            .AsNoTracking()
+            .AsSplitQuery()
+            .ToListAsync();
+
+        List<DateTime> months = new();
+
+        const int monthSpan = 5;
+
+        DateTime dt = DateTime.Now.Date.AddMonths(-monthSpan);
+
+        for (int i = 0; i <= monthSpan; i++)
+        {
+            months.Add(dt);
+
+            dt = dt.AddMonths(1);
+        }
+
+        List<Series> series = new();
+
+        var firstMonth = DateOnly.FromDateTime(DateTime.Now.Date.AddMonths(-monthSpan));
+
+        foreach (var project in projects)
+        {
+            List<decimal> values = new();
+
+            foreach (var month in months)
+            {
+                var value = project.Activities.SelectMany(a => a.Entries)
+                    .Where(e => e.Date > firstMonth)
+                    .Where(e => e.Date.Year == month.Year && e.Date.Month == month.Month)
+                    .Where(e => e.TimeSheet.User.Id == id)
+                    .Sum(x => x.Hours.GetValueOrDefault());
+
+                values.Add((decimal)value);
+            }
+
+            series.Add(new Series(project.Name, values));
+        }
+
+        var dto = new Data(
+            months.Select(d => d.ToString("MMM yy")).ToArray(),
+            series);
+
+        return Ok(dto);
+    }
 }
 
 public record class CreateUserDto(string FirstName, string LastName, string? DisplayName, string SSN);

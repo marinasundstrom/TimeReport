@@ -1157,6 +1157,38 @@
           }
         }
       }
+    },
+    "/api/Users/{id}/Statistics": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "Users_GetStatistics",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Data"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

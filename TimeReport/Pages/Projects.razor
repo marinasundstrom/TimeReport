@@ -56,7 +56,6 @@
     public List<ChartSeries> Series = new List<ChartSeries>();
     public string[] XAxisLabels = new string[0];
 
-
     protected override async Task OnInitializedAsync()
     {
         data = await ProjectsClient.GetStatisticsAsync();

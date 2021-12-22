@@ -29,6 +29,17 @@
             <MudTablePager />
         </PagerContent>
     </MudTable>
+
+    @if (data is not null)
+    {
+        <MudPaper Class="pa-16 ma-2 mt-8">
+
+            <MudText Typo="Typo.h6" Align="Align.Center" GutterBottom="true">Project hours per month</MudText>
+
+            <MudChart Class="mt-8" ChartType="ChartType.Bar" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+
+        </MudPaper>
+    }
 }
 
 @code {
@@ -36,11 +47,30 @@
     UserDto user;
     MudTable<ProjectMembershipDto> table2;
 
+    Data? data;
+
+    private ChartOptions options = new ChartOptions()
+    {
+        YAxisFormat = "0 h",
+        YAxisTicks = 10
+    };
+    public List<ChartSeries> Series = new List<ChartSeries>();
+    public string[] XAxisLabels = new string[0];
+
     [Parameter] public string UserId { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         user = await UsersClient.GetUserAsync(UserId);
+
+        data = await UsersClient.GetStatisticsAsync(UserId);
+
+        XAxisLabels = data.Labels.ToArray();
+
+        foreach (var d in data.Series)
+        {
+            Series.Add(new ChartSeries() { Name = d.Name, Data = d.Data.Select(x => (double)x).ToArray() });
+        }
     }
 
     private async Task<TableData<ProjectMembershipDto>> ServerReload2(TableState state)
