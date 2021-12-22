@@ -51,7 +51,7 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnAddMembershipClicked">New member</MudButton>
 
     <MudTable T="ProjectMembershipDto" ServerData="@(new Func<TableState, Task<TableData<ProjectMembershipDto>>>(ServerReload2))"
-              Hover="true" @ref="table2" Class="mt-4">
+              Hover="true" @ref="table2" Class="mt-4" OnRowClick="e => GotToMember(e.Item)">
         <HeaderContent>
             <MudTh>Name</MudTh>
             <MudTh></MudTh>
@@ -191,5 +191,10 @@
         await ProjectsClient.DeleteProjectMembershipAsync(ProjectId, membership.Id);
 
         table2.ReloadServerData();
+    }
+
+    private void GotToMember(ProjectMembershipDto membership)
+    {
+        NavigationManager.NavigateTo($"/users/{membership.User.Id}");
     }
 }

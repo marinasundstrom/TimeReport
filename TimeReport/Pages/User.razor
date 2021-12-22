@@ -1,0 +1,58 @@
+﻿@page "/users/{userId}"
+@inject NavigationManager NavigationManager
+@inject IDialogService DialogService
+@inject IUsersClient UsersClient
+
+@if (user is not null)
+{
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@user.FirstName @user.LastName</MudText>
+
+    <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true" Class="mt-6">Projects</MudText>
+
+    <MudTable T="ProjectMembershipDto" ServerData="@(new Func<TableState, Task<TableData<ProjectMembershipDto>>>(ServerReload2))"
+              Hover="true" @ref="table2" Class="mt-4" OnRowClick="(e) => GotToProject(e.Item)">
+        <HeaderContent>
+            <MudTh>Project</MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate Context="membership">
+            <MudTd DataLabel="Name">@membership.Projects.Name</MudTd>
+            <MudTd DataLabel="Name">@membership.Projects.Description</MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+
+@code {
+    bool isLoading = false;
+    UserDto user;
+    MudTable<ProjectMembershipDto> table2;
+
+    [Parameter] public string UserId { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        user = await UsersClient.GetUserAsync(UserId);
+    }
+
+    private async Task<TableData<ProjectMembershipDto>> ServerReload2(TableState state)
+    {
+        var result = await UsersClient.GetProjectMembershipsAsync(UserId);
+
+        return new TableData<ProjectMembershipDto>() { TotalItems = result.Count(), Items = result };
+    }
+
+    private void GotToProject(ProjectMembershipDto membership)
+    {
+        NavigationManager.NavigateTo($"/projects/{membership.Projects.Id}");
+    }
+}
+

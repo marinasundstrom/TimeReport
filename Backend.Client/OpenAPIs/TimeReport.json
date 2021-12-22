@@ -1122,6 +1122,41 @@
           }
         }
       }
+    },
+    "/api/Users/{id}/Memberships": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "Users_GetProjectMemberships",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ProjectMembershipDto"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {

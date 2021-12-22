@@ -113,6 +113,28 @@ public class UsersController : ControllerBase
 
         return Ok();
     }
+
+
+    [HttpGet("{id}/Memberships")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<ProjectMembershipDto>>> GetProjectMemberships(string id)
+    {
+        var projectMemberships = await context.ProjectMemberships
+            .Include(m => m.Project)
+            .Include(m => m.User)
+            .OrderBy(p => p.Created)
+            .AsSplitQuery()
+            .Where(x => x.User.Id == id)
+            .ToArrayAsync();
+
+        var dto = projectMemberships
+            .DistinctBy(x => x.Project) // Temp
+            .Select(m => new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Created, m.User.Deleted),
+            m.From, m.Thru));
+
+        return Ok(dto);
+    }
 }
 
 public record class CreateUserDto(string FirstName, string LastName, string? DisplayName, string SSN);

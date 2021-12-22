@@ -8,7 +8,7 @@
 <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewUserClicked">New User</MudButton>
 
 <MudTable T="UserDto" ServerData="@(new Func<TableState, Task<TableData<UserDto>>>(ServerReload))"
-          Hover="true" @ref="table" Class="mt-4">
+          Hover="true" @ref="table" Class="mt-4" OnRowClick="(e) => GotToUser(e.Item)">
     <HeaderContent>
         <MudTh>First Name</MudTh>
         <MudTh>Last Name</MudTh>
