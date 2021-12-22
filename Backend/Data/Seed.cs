@@ -118,7 +118,7 @@ static class Seed
         project.Memberships.Add(new ProjectMembership()
         {
             Id = Guid.NewGuid().ToString(),
-            User = user1,
+            User = user2,
 
             Created = DateTime.Now,
             CreatedBy = "N/A"
