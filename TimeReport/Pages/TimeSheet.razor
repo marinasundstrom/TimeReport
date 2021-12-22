@@ -88,9 +88,13 @@
                 </MudTd>
             </RowTemplate>
 
-            <NoRecordsContent>
-                <MudText>No matching records found</MudText>
-            </NoRecordsContent>
+            <FooterContent>
+                <MudTh Class="mud-table-cell-custom-group" colspan="9"></MudTh>
+                <MudTd>
+                    <MudText Typo="Typo.h6">@ActivitiesModels.Sum(x => x.TotalHours) h</MudText>
+                </MudTd>
+                <MudTd></MudTd>
+            </FooterContent>
 
             <LoadingContent>
                 <MudText>Loading...</MudText>
