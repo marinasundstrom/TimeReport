@@ -238,6 +238,7 @@ public class TimeSheetsController : ControllerBase
     public async Task<ActionResult<EntryDto>> CreateEntry([FromRoute] string timeSheetId, CreateEntryDto dto, CancellationToken cancellationToken)
     {
         var timeSheet = await context.TimeSheets
+            .Include(x => x.User)
             .Include(x => x.Entries)
             .ThenInclude(x => x.Project)
             .Include(x => x.Entries)
@@ -320,6 +321,7 @@ public class TimeSheetsController : ControllerBase
         var entry = new Entry
         {
             Id = Guid.NewGuid().ToString(),
+            User = timeSheet.User,
             Project = project,
             Activity = activity,
             TimeSheetActivity = timeSheetActivity,

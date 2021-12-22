@@ -197,6 +197,8 @@ public class Entry : AuditableEntity
 {
     public string Id { get; set; } = null!;
 
+    public User User { get; set; } = null!;
+
     public Project Project { get; set; } = null!;
 
     public Activity Activity { get; set; } = null!;

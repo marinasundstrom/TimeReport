@@ -144,7 +144,6 @@ public class UsersController : ControllerBase
             .ThenInclude(x => x.User)
             .Include(x => x.Activities)
             .ThenInclude(x => x.Entries)
-            .ThenInclude(x => x.TimeSheet)
             .ThenInclude(x => x.User)
             .Where(x => x.Memberships.Any(x => x.User.Id == id))
             .AsNoTracking()
@@ -177,7 +176,7 @@ public class UsersController : ControllerBase
                 var value = project.Activities.SelectMany(a => a.Entries)
                     .Where(e => e.Date > firstMonth)
                     .Where(e => e.Date.Year == month.Year && e.Date.Month == month.Month)
-                    .Where(e => e.TimeSheet.User.Id == id)
+                    .Where(e => e.User.Id == id)
                     .Sum(x => x.Hours.GetValueOrDefault());
 
                 values.Add((decimal)value);
