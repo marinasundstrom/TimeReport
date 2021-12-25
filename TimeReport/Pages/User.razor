@@ -75,9 +75,9 @@
 
     private async Task<TableData<ProjectMembershipDto>> ServerReload2(TableState state)
     {
-        var result = await UsersClient.GetProjectMembershipsAsync(UserId);
+        var result = await UsersClient.GetProjectMembershipsAsync(UserId, state.Page, state.PageSize);
 
-        return new TableData<ProjectMembershipDto>() { TotalItems = result.Count(), Items = result };
+        return new TableData<ProjectMembershipDto>() { TotalItems = result.TotalItems, Items = result.Items };
     }
 
     private void GotToProject(ProjectMembershipDto membership)

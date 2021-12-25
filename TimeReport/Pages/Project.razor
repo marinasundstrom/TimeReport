@@ -107,16 +107,16 @@
 
     private async Task<TableData<ActivityDto>> ServerReload(TableState state)
     {
-        var result = await ActivitiesClient.GetActivitiesAsync(ProjectId);
+        var result = await ActivitiesClient.GetActivitiesAsync(state.Page, state.PageSize, ProjectId);
 
-        return new TableData<ActivityDto>() { TotalItems = result.Count(), Items = result };
+        return new TableData<ActivityDto>() { TotalItems = result.TotalItems, Items = result.Items };
     }
 
     private async Task<TableData<ProjectMembershipDto>> ServerReload2(TableState state)
     {
-        var result = await ProjectsClient.GetProjectMembershipsAsync(ProjectId);
+        var result = await ProjectsClient.GetProjectMembershipsAsync(ProjectId, state.Page, state.PageSize);
 
-        return new TableData<ProjectMembershipDto>() { TotalItems = result.Count(), Items = result };
+        return new TableData<ProjectMembershipDto>() { TotalItems = result.TotalItems, Items = result.Items };
     }
 
     private async Task OnNewActivityClicked()

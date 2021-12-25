@@ -19,7 +19,7 @@ public class ActivitiesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ActivityDto>>> GetActivities(string? projectId = null)
+    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null)
     {
         var query = context.Activities
             .Include(x => x.Project)
@@ -32,10 +32,16 @@ public class ActivitiesController : ControllerBase
             query = query.Where(activity => activity.Project.Id == projectId);
         }
 
-        var activities = await query.ToListAsync();
+        var totalItems = await query.CountAsync();
 
-        var dto = activities.Select(activity => new ActivityDto(activity.Id, activity.Name, activity.Description, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description)));
-        return Ok(dto);
+        var activities = await query
+            .Skip(pageSize * page)
+            .Take(pageSize)   
+            .ToListAsync();
+
+        var dtos = activities.Select(activity => new ActivityDto(activity.Id, activity.Name, activity.Description, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description)));
+        
+        return Ok(new ItemsResult<ActivityDto>(dtos, totalItems));
     }
 
     [HttpGet("{id}")]

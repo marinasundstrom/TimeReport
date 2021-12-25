@@ -43,7 +43,8 @@
 
     protected override async Task OnInitializedAsync()
     {
-        users = await UsersClient.GetUsersAsync();
+        var page = await UsersClient.GetUsersAsync(0, 10);
+        users = page.Items;
 
         if (MembershipId is not null)
         {

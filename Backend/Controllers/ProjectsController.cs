@@ -19,11 +19,13 @@ public class ProjectsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectDto>>> GetProjects(string? userId = null)
+    public async Task<ActionResult<ItemsResult<ProjectDto>>> GetProjects(string? userId = null, int page = 0, int pageSize = 10)
     {
         var query = context.Projects
             .Include(p => p.Memberships)
             .OrderBy(p => p.Created)
+            .Skip(pageSize * page)
+            .Take(pageSize)
             .AsNoTracking()
             .AsSplitQuery()
             .AsQueryable();
@@ -33,10 +35,13 @@ public class ProjectsController : ControllerBase
             query = query.Where(p => p.Memberships.Any(x => x.User.Id ==userId));
         }
 
+        var totalItems = await query.CountAsync();
+
         var projects = await query.ToArrayAsync();
 
-        var dto = projects.Select(project => new ProjectDto(project.Id, project.Name, project.Description));
-        return Ok(dto);
+        var dtos = projects.Select(project => new ProjectDto(project.Id, project.Name, project.Description));
+        
+        return Ok(new ItemsResult<ProjectDto>(dtos, totalItems));
     }
 
     [HttpGet("{id}")]
@@ -227,12 +232,9 @@ public class ProjectsController : ControllerBase
 
     [HttpGet("{id}/Memberships")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectMembershipDto>>> GetProjectMemberships(string id)
+    public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10)
     {
         var project = await context.Projects
-            .Include(p => p.Memberships)
-            .Include(p => p.Memberships)
-            .ThenInclude(m => m.User)
             .OrderBy(p => p.Created)
             .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -242,12 +244,24 @@ public class ProjectsController : ControllerBase
             return NotFound();
         }
 
-        var dto = project.Memberships
+        var query = context.ProjectMemberships
+                .OrderBy(p => p.Created)
+                .Where(m => m.Project.Id == project.Id);
+
+        var totalItems = await query.CountAsync();
+                
+        var memberships = await query
+                .Include(m => m.User)
+                .Skip(pageSize * page)
+                .Take(pageSize)
+                .ToArrayAsync();
+
+        var dtos = memberships
             .Select(m => new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
             new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Created, m.User.Deleted),
             m.From, m.Thru));
 
-        return Ok(dto);
+        return Ok(new ItemsResult<ProjectMembershipDto>(dtos, totalItems));
     }
 
     [HttpGet("{id}/Memberships/{membershipId}")]

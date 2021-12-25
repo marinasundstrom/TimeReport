@@ -50,3 +50,5 @@ public record class ProjectMembershipDto(string Id, ProjectDto Projects, UserDto
 public record class CreateProjectMembershipDto(string UserId, DateTime? From, DateTime? Thru);
 
 public record class UpdateProjectMembershipDto(DateTime? From, DateTime? Thru);
+
+public record ItemsResult<T>(IEnumerable<T> Items, int TotalItems);

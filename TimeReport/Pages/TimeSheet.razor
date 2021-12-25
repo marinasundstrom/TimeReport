@@ -142,10 +142,13 @@
 
         try
         {
-            Users = await UsersClient.GetUsersAsync();
+            var page = await UsersClient.GetUsersAsync(0, 10);
+            Users = page.Items;
+
             User = Users.FirstOrDefault();
 
-            activities = await ActivitiesClient.GetActivitiesAsync(null);
+            var page2 = await ActivitiesClient.GetActivitiesAsync(0, 10, null);
+            activities = page2.Items;
         }
         catch (Exception e)
         {

@@ -19,16 +19,21 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<UserDto>>> GetUsers(CancellationToken cancellationToken)
+    public async Task<ActionResult<ItemsResult<UserDto>>> GetUsers(int page = 0, int pageSize = 10)
     {
+        var totalItems = await context.Users.CountAsync();
+
         var users = await context.Users
             .OrderBy(p => p.Created)
+            .Skip(pageSize * page)
+            .Take(pageSize)
             .AsNoTracking()
             .AsSplitQuery()
             .ToListAsync();
 
-        var dto = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted));
-        return Ok(dto);
+        var dtos = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted));
+
+        return Ok(new ItemsResult<UserDto>(dtos, totalItems));
     }
 
     [HttpGet("{id}")]
@@ -117,23 +122,29 @@ public class UsersController : ControllerBase
 
     [HttpGet("{id}/Memberships")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<IEnumerable<ProjectMembershipDto>>> GetProjectMemberships(string id)
+    public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10)
     {
-        var projectMemberships = await context.ProjectMemberships
+        var query = context.ProjectMemberships
+            .OrderBy(p => p.Created)
+            .Where(x => x.User.Id == id);
+
+        var totalItems = await context.ProjectMemberships.CountAsync();
+
+        var projectMemberships = await query
             .Include(m => m.Project)
             .Include(m => m.User)
-            .OrderBy(p => p.Created)
+            .Skip(pageSize * page)
+            .Take(pageSize)
             .AsSplitQuery()
-            .Where(x => x.User.Id == id)
             .ToArrayAsync();
 
-        var dto = projectMemberships
+        var dtos = projectMemberships
             .DistinctBy(x => x.Project) // Temp
             .Select(m => new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
             new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Created, m.User.Deleted),
             m.From, m.Thru));
 
-        return Ok(dto);
+        return Ok(new ItemsResult<ProjectMembershipDto>(dtos, totalItems));
     }
 
     [HttpGet("{id}/Statistics")]

@@ -47,14 +47,14 @@
 
     private async Task<TableData<UserDto>> ServerReload(TableState state)
     {
-        var result = await UsersClient.GetUsersAsync();
+        var page = await UsersClient.GetUsersAsync(state.Page, state.PageSize);
 
-        return new TableData<UserDto>() { TotalItems = result.Count(), Items = result };
+        return new TableData<UserDto>() { TotalItems = page.TotalItems, Items = page.Items };
     }
 
     private void GotToUser(UserDto user)
     {
-        NavigationManager.NavigateTo($"/users/{user.Id}");
+        NavigationManager.NavigateTo($"/users/{user.Id}");;
     }
 
     private async Task OnNewUserClicked()

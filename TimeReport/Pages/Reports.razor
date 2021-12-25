@@ -62,7 +62,8 @@
     {
         this.user = user;
 
-        projects = await ProjectsClient.GetProjectsAsync(user?.Id);
+        var page = await ProjectsClient.GetProjectsAsync(user?.Id, 0, 10);
+        projects = page.Items;
         options = new HashSet<ProjectDto>();
     }
 
@@ -72,8 +73,11 @@
         {
             isLoading = true;
 
-            users = await UsersClient.GetUsersAsync();
-            projects = await ProjectsClient.GetProjectsAsync(null);
+            var page = await UsersClient.GetUsersAsync(0, 10);
+            users = page.Items;
+
+            var page2 = await ProjectsClient.GetProjectsAsync(null, 0, 10);
+            projects = page2.Items;
         }
         catch (Exception e)
         {
