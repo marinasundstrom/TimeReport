@@ -8,18 +8,6 @@
 {
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@project.Name</MudText>
 
-    <MudPaper Class="pa-16 ma-2">
-
-        <MudText Typo="Typo.h6" Align="Align.Center" GutterBottom="true">Activity hours per month</MudText>
-
-        <MudChart Class="mt-8" ChartType="ChartType.Bar" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
-
-    </MudPaper>
-
-    @if (statisticsSummary is not null)
-    {
-        <StatisticsSummaryView Entries="statisticsSummary.Entries" />
-    }
 
     <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true" Class="mt-6">Activities</MudText>
 
@@ -58,7 +46,7 @@
     <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnAddMembershipClicked">New member</MudButton>
 
     <MudTable T="ProjectMembershipDto" ServerData="@(new Func<TableState, Task<TableData<ProjectMembershipDto>>>(ServerReload2))"
-              Hover="true" @ref="table2" Class="mt-4" OnRowClick="e => GotToMember(e.Item)">
+              Hover="true" @ref="table2" Class="mt-4 mb-2" OnRowClick="e => GotToMember(e.Item)">
         <HeaderContent>
             <MudTh>Name</MudTh>
             <MudTh></MudTh>
@@ -80,6 +68,19 @@
             <MudTablePager />
         </PagerContent>
     </MudTable>
+
+    <MudPaper Class="pa-16 ma-2 mt-4">
+
+        <MudText Typo="Typo.h6" Align="Align.Center" GutterBottom="true">Activity hours per month</MudText>
+
+        <MudChart Class="mt-8" ChartType="ChartType.Bar" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+
+    </MudPaper>
+
+    @if (statisticsSummary is not null)
+    {
+        <StatisticsSummaryView Entries="statisticsSummary.Entries" />
+    }
 }
 
 @code {

@@ -5,26 +5,11 @@
 
 <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Projects</MudText>
 
-@if (data is not null)
-{
-    <MudPaper Class="pa-16 ma-2">
 
-        <MudText Typo="Typo.h6" Align="Align.Center" GutterBottom="true">Project hours per month</MudText>
-
-        <MudChart Class="mt-8" ChartType="ChartType.Bar" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
-
-    </MudPaper>
-}
-
-@if (statisticsSummary is not null)
-{
-    <StatisticsSummaryView Entries="statisticsSummary.Entries" />
-}
-
-<MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewProjectClicked">New project</MudButton>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewProjectClicked">New project</MudButton>
 
 <MudTable T="ProjectDto" ServerData="@(new Func<TableState, Task<TableData<ProjectDto>>>(ServerReload))"
-          Hover="true" @ref="table" OnRowClick="(TableRowClickEventArgs<ProjectDto> project) => GotToProject(project.Item)" Class="mt-4">
+          Hover="true" @ref="table" OnRowClick="(TableRowClickEventArgs<ProjectDto> project) => GotToProject(project.Item)" Class="mt-4 mb-4">
     <ToolBarContent>
         <MudSpacer />
         <MudTextField T="string" ValueChanged="@(s => OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start" Immediate="true" DebounceInterval="500"
@@ -53,6 +38,23 @@
         <MudTablePager />
     </PagerContent>
 </MudTable>
+
+
+@if (data is not null)
+{
+    <MudPaper Class="pa-16 ma-2">
+
+        <MudText Typo="Typo.h6" Align="Align.Center" GutterBottom="true">Project hours per month</MudText>
+
+        <MudChart Class="mt-8" ChartType="ChartType.Bar" ChartSeries="@Series" XAxisLabels="@XAxisLabels" Width="100%" Height="350" ChartOptions="options"></MudChart>
+
+    </MudPaper>
+}
+
+@if (statisticsSummary is not null)
+{
+    <StatisticsSummaryView Entries="statisticsSummary.Entries" />
+}
 
 @code {
     MudTable<ProjectDto> table;
