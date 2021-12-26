@@ -1725,6 +1725,9 @@
           "ssn": {
             "type": "string"
           },
+          "email": {
+            "type": "string"
+          },
           "created": {
             "type": "string",
             "format": "date-time"
@@ -2012,6 +2015,9 @@
           },
           "ssn": {
             "type": "string"
+          },
+          "email": {
+            "type": "string"
           }
         }
       },
@@ -2030,6 +2036,9 @@
             "nullable": true
           },
           "ssn": {
+            "type": "string"
+          },
+          "email": {
             "type": "string"
           }
         }

@@ -121,6 +121,8 @@ public class User : AuditableEntity, ISoftDelete
 
     public string SSN { get; set; } = null!;
 
+    public string Email { get; set; } = null!;
+
     public DateTime? Deleted { get; set; }
     public string? DeletedBy { get; set; }
 }

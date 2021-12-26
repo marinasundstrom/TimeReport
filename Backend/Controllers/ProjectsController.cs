@@ -335,7 +335,7 @@ public class ProjectsController : ControllerBase
 
         var dtos = memberships
             .Select(m => new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
-            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Created, m.User.Deleted),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Email, m.User.Created, m.User.Deleted),
             m.From, m.Thru));
 
         return Ok(new ItemsResult<ProjectMembershipDto>(dtos, totalItems));
@@ -365,7 +365,7 @@ public class ProjectsController : ControllerBase
         }
 
         var dto = new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
-            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Created, m.User.Deleted),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Email, m.User.Created, m.User.Deleted),
             m.From, m.Thru);
 
         return Ok(dto);
@@ -418,7 +418,7 @@ public class ProjectsController : ControllerBase
         await context.SaveChangesAsync();
 
         var dto = new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
-            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Created, m.User.Deleted),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Email, m.User.Created, m.User.Deleted),
             m.From, m.Thru);
 
         return Ok(dto);
@@ -453,7 +453,7 @@ public class ProjectsController : ControllerBase
         await context.SaveChangesAsync();
 
         var dto = new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
-            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Created, m.User.Deleted),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Email, m.User.Created, m.User.Deleted),
             m.From, m.Thru);
 
         return Ok(dto);

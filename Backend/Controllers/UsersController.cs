@@ -31,7 +31,7 @@ public class UsersController : ControllerBase
             .AsSplitQuery()
             .ToListAsync();
 
-        var dtos = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted));
+        var dtos = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted));
 
         return Ok(new ItemsResult<UserDto>(dtos, totalItems));
     }
@@ -50,7 +50,7 @@ public class UsersController : ControllerBase
             return NotFound();
         }
 
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted);
+        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted);
         return Ok(dto);
     }
 
@@ -64,14 +64,15 @@ public class UsersController : ControllerBase
             FirstName = createUserDto.FirstName,
             LastName = createUserDto.LastName,
             DisplayName = createUserDto.DisplayName,
-            SSN = createUserDto.SSN
+            SSN = createUserDto.SSN,
+            Email = createUserDto.Email
         };
 
         context.Users.Add(user);
 
         await context.SaveChangesAsync();
 
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted);
+        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted);
         return Ok(dto);
     }
 
@@ -92,10 +93,11 @@ public class UsersController : ControllerBase
         user.LastName = updateUserDetailsDto.LastName;
         user.DisplayName = updateUserDetailsDto.DisplayName;
         user.SSN = updateUserDetailsDto.SSN;
+        user.Email = updateUserDetailsDto.Email;
 
         await context.SaveChangesAsync();
 
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Created, user.Deleted);
+        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted);
         return Ok(dto);
     }
 
@@ -141,7 +143,7 @@ public class UsersController : ControllerBase
         var dtos = projectMemberships
             .DistinctBy(x => x.Project) // Temp
             .Select(m => new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
-            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Created, m.User.Deleted),
+            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Email, m.User.Created, m.User.Deleted),
             m.From, m.Thru));
 
         return Ok(new ItemsResult<ProjectMembershipDto>(dtos, totalItems));
@@ -240,6 +242,6 @@ public class UsersController : ControllerBase
     }
 }
 
-public record class CreateUserDto(string FirstName, string LastName, string? DisplayName, string SSN);
+public record class CreateUserDto(string FirstName, string LastName, string? DisplayName, string SSN, string Email);
 
-public record class UpdateUserDetailsDto(string FirstName, string LastName, string? DisplayName, string SSN);
+public record class UpdateUserDetailsDto(string FirstName, string LastName, string? DisplayName, string SSN, string Email);

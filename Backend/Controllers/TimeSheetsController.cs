@@ -51,7 +51,7 @@ public class TimeSheetsController : ControllerBase
             .Select(e => new TimeSheetActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description),
                 e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description))));
 
-        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Created, timeSheet.User.Deleted),
+        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
             activities);
 
         return Ok(dto);
@@ -112,7 +112,7 @@ public class TimeSheetsController : ControllerBase
                 e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description))))
             .ToArray();
 
-        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Created, timeSheet.User.Deleted),
+        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
             activities);
 
         return Ok(dto); 

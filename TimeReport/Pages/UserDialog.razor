@@ -15,6 +15,7 @@
 
             <MudTextField Label="SSN" Class="mb-6" Variant="Variant.Outlined" @bind-Value="SSN" For="() => SSN" />
 
+            <MudTextField Label="Email" Class="mb-6" Variant="Variant.Outlined" @bind-Value="Email" For="() => Email" />
 
         </DialogContent>
 
@@ -42,6 +43,10 @@
     [Required]
     public string SSN { get; set; }
 
+    [Required]
+    [EmailAddress]
+    public string Email { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if(UserId is not null)
@@ -52,6 +57,7 @@
             LastName = result.LastName;
             DisplayName = result.DisplayName;
             SSN = result.Ssn;
+            Email = result.Email;
         }
     }
 
@@ -66,7 +72,8 @@
                 FirstName = FirstName,
                 LastName = LastName,
                 DisplayName = DisplayName,
-                Ssn = SSN
+                Ssn = SSN,
+                Email = Email
             });
         }
         else
@@ -76,7 +83,8 @@
                 FirstName = FirstName,
                 LastName = LastName,
                 DisplayName = DisplayName,
-                Ssn = SSN
+                Ssn = SSN,
+                Email = Email
             });
         }
 

@@ -14,6 +14,7 @@
         <MudTh>Last Name</MudTh>
         <MudTh>Display Name</MudTh>
         <MudTh>SSN</MudTh>
+        <MudTh>Email</MudTh>
         <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate Context="user">
@@ -21,6 +22,7 @@
         <MudTd DataLabel="Last Name">@user.LastName</MudTd>
         <MudTd DataLabel="Last Name">@user.DisplayName</MudTd>
         <MudTd DataLabel="SSN">@user.Ssn</MudTd>
+        <MudTd DataLabel="Email">@user.Email</MudTd>
         <MudTd>
             <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditUserClicked(user)" />
             @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@

@@ -87,6 +87,8 @@ static class Seed
             FirstName = "Alice",
             LastName = "McDonald",
 
+            Email = "alice.mcdonald@onestop.io",
+
             Created = DateTime.Now,
             CreatedBy = "N/A"
         };
@@ -98,6 +100,8 @@ static class Seed
             FirstName = "Robert",
             LastName = "Johnson",
             DisplayName = "Bob Johnson",
+
+            Email = "bob.johnson@onestop.io",
 
             Created = DateTime.Now,
             CreatedBy = "N/A"
