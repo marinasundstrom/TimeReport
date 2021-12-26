@@ -40,12 +40,18 @@
 
         </MudPaper>
     }
+
+    @if (statisticsSummary is not null)
+    {
+        <StatisticsSummaryView Entries="statisticsSummary.Entries" />
+    }
 }
 
 @code {
     bool isLoading = false;
     UserDto user;
     MudTable<ProjectMembershipDto> table2;
+    StatisticsSummary statisticsSummary;
 
     Data? data;
 
@@ -71,6 +77,8 @@
         {
             Series.Add(new ChartSeries() { Name = d.Name, Data = d.Data.Select(x => (double)x).ToArray() });
         }
+
+        statisticsSummary = await UsersClient.GetStatisticsSummaryAsync(UserId);
     }
 
     private async Task<TableData<ProjectMembershipDto>> ServerReload2(TableState state)

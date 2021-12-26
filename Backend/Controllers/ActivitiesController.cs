@@ -134,6 +134,37 @@ public class ActivitiesController : ControllerBase
 
         return Ok();
     }
+
+
+    [HttpGet("{id}/Statistics/Summary")]
+    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id)
+    {
+        var activity = await context.Activities
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.User)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (activity is null)
+        {
+            return NotFound();
+        }
+
+        var totalHours = activity.Entries
+            .Sum(p => p.Hours.GetValueOrDefault());
+
+        var totalUsers = activity.Entries
+            .Select(p => p.User)
+            .DistinctBy(p => p.Id)
+            .Count();
+
+        return new StatisticsSummary(new StatisticsSummaryEntry[]
+        {
+            new ("Participants", totalUsers),
+            new ("Hours", totalHours)
+        });
+    }
 }
 
 public record class CreateActivityDto(string Name, string? Description);

@@ -203,6 +203,41 @@ public class UsersController : ControllerBase
 
         return Ok(dto);
     }
+
+    [HttpGet("{id}/Statistics/Summary")]
+    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id)
+    {
+        var user = await context.Users
+            .AsNoTracking()
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (user is null)
+        {
+            return NotFound();
+        }
+
+        var entries = await context.Entries
+            .Include(x => x.Project)
+            .Where(x => x.User.Id == id)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .ToArrayAsync();
+
+        var totalHours = entries
+            .Sum(p => p.Hours.GetValueOrDefault());
+
+        var totalProjects = entries
+            .Select(p => p.Project)
+            .DistinctBy(p => p.Id)
+            .Count();
+
+        return new StatisticsSummary(new StatisticsSummaryEntry[]
+        {
+            new ("Projects", totalProjects),
+            new ("Hours", totalHours)
+        });
+    }
 }
 
 public record class CreateUserDto(string FirstName, string LastName, string? DisplayName, string SSN);

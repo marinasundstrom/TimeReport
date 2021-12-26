@@ -66,6 +66,9 @@ static class Seed
         {
             Id = Guid.NewGuid().ToString(),
             Name = "Project time",
+
+            HourlyRate = 640m,
+
             MinHoursPerDay = null,
             MaxHoursPerDay = null,
 

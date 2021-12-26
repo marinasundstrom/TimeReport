@@ -220,6 +220,38 @@
         }
       }
     },
+    "/api/Activities/{id}/Statistics/Summary": {
+      "get": {
+        "tags": [
+          "Activities"
+        ],
+        "operationId": "Activities_GetStatisticsSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticsSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Projects": {
       "get": {
         "tags": [
@@ -398,6 +430,26 @@
         }
       }
     },
+    "/api/Projects/Statistics/Summary": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_GetStatisticsSummary",
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticsSummary"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Projects/Statistics": {
       "get": {
         "tags": [
@@ -433,6 +485,38 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Data"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/Projects/{projectId}/Statistics/Summary": {
+      "get": {
+        "tags": [
+          "Projects"
+        ],
+        "operationId": "Projects_GetStatisticsSummary2",
+        "parameters": [
+          {
+            "name": "projectId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticsSummary"
                 }
               }
             }
@@ -1341,6 +1425,38 @@
           }
         }
       }
+    },
+    "/api/Users/{id}/Statistics/Summary": {
+      "get": {
+        "tags": [
+          "Users"
+        ],
+        "operationId": "Users_GetStatisticsSummary",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatisticsSummary"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -1417,6 +1533,41 @@
             "type": "string"
           },
           "description": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "StatisticsSummary": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatisticsSummaryEntry"
+            }
+          }
+        }
+      },
+      "StatisticsSummaryEntry": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "value": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "value2": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
+          "unit": {
             "type": "string",
             "nullable": true
           }

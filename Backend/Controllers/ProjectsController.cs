@@ -123,6 +123,39 @@ public class ProjectsController : ControllerBase
         return Ok();
     }
 
+    [HttpGet("Statistics/Summary")]
+    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary()
+    {
+        var entries = await context.Entries
+            .CountAsync();
+
+        var totalProjects = await context.Projects
+           .CountAsync();
+
+        var totalUsers = await context.Users
+            .CountAsync();
+
+        var totalHours = await context.Entries
+            .SumAsync(p => p.Hours.GetValueOrDefault());
+
+        var revenue = await context.Entries
+            .Where(e => e.Activity.HourlyRate.GetValueOrDefault() > 0)
+            .SumAsync(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
+
+        var expenses = await context.Entries
+             .Where(e => e.Activity.HourlyRate.GetValueOrDefault() < 0)
+             .SumAsync(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
+
+        return new StatisticsSummary(new StatisticsSummaryEntry[]
+        {
+            new ("Projects", totalProjects),
+            new ("Users", totalUsers),
+            new ("Hours", totalHours),
+            new ("Revenue", null, revenue,  unit: "currency"),
+            new ("Expenses", null, expenses, unit: "currency")
+        });
+    }
+
     [HttpGet("Statistics")]
     public async Task<ActionResult<Data>> GetStatistics(DateTime? from = null, DateTime? to = null)
     {
@@ -173,6 +206,48 @@ public class ProjectsController : ControllerBase
             series);
 
         return Ok(dto);
+    }
+
+    [HttpGet("{projectId}/Statistics/Summary")]
+    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string projectId)
+    {
+        var project = await context.Projects
+            .Include(p => p.Entries)
+            .ThenInclude(x => x.User)
+            .Include(p => p.Entries)
+            .ThenInclude(x => x.Activity)
+            .AsSplitQuery()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(p => p.Id == projectId);
+
+        if (project is null)
+        {
+            return NotFound();
+        }
+
+        var totalHours = project.Entries
+            .Sum(e => e.Hours.GetValueOrDefault());
+
+        var revenue = project.Entries
+            .Where(e => e.Activity.HourlyRate.GetValueOrDefault() > 0)
+            .Sum(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
+
+        var expenses = project.Entries
+             .Where(e => e.Activity.HourlyRate.GetValueOrDefault() < 0)
+             .Sum(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
+
+        var totalUsers = project.Entries
+            .Select(e => e.User)
+            .DistinctBy(e => e.Id)
+            .Count();
+
+        return new StatisticsSummary(new StatisticsSummaryEntry[]
+        {
+            new ("Participants", totalUsers),
+            new ("Hours", totalHours),
+            new ("Revenue", null, revenue, unit: "currency"),
+            new ("Expenses", null, expenses, unit: "currency")
+        });
     }
 
     [HttpGet("{projectId}/Statistics")]
@@ -390,7 +465,6 @@ public class ProjectsController : ControllerBase
     {
         var project = await context.Projects
             .Include(p => p.Memberships)
-            .Include(p => p.Memberships)
             .ThenInclude(m => m.User)
             .AsSplitQuery()
             .FirstOrDefaultAsync(x => x.Id == id);
@@ -418,3 +492,7 @@ public class ProjectsController : ControllerBase
 public record class CreateProjectDto(string Name, string? Description);
 
 public record class UpdateProjectDto(string Name, string? Description);
+
+public record class StatisticsSummary(IEnumerable<StatisticsSummaryEntry> Entries);
+
+public record class StatisticsSummaryEntry(string Name, double? Value, decimal? Value2 = null, string? unit = null);

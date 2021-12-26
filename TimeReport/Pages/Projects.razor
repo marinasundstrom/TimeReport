@@ -16,7 +16,12 @@
     </MudPaper>
 }
 
-<MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewProjectClicked">New project</MudButton>
+@if (statisticsSummary is not null)
+{
+    <StatisticsSummaryView Entries="statisticsSummary.Entries" />
+}
+
+<MudButton Class="mt-4" Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnNewProjectClicked">New project</MudButton>
 
 <MudTable T="ProjectDto" ServerData="@(new Func<TableState, Task<TableData<ProjectDto>>>(ServerReload))"
           Hover="true" @ref="table" OnRowClick="(TableRowClickEventArgs<ProjectDto> project) => GotToProject(project.Item)" Class="mt-4">
@@ -30,7 +35,7 @@
         <MudTd DataLabel="Description">@project.Description</MudTd>
         <MudTd>
             <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditProjectClicked(project)" />
-           @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@
+            @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@
         </MudTd>
     </RowTemplate>
     <NoRecordsContent>
@@ -46,10 +51,12 @@
 
 @code {
     MudTable<ProjectDto> table;
+    StatisticsSummary statisticsSummary;
 
     Data? data;
 
-    private ChartOptions options = new ChartOptions() {
+    private ChartOptions options = new ChartOptions()
+    {
         YAxisFormat = "0 h",
         YAxisTicks = 10
     };
@@ -66,6 +73,8 @@
         {
             Series.Add(new ChartSeries() { Name = d.Name, Data = d.Data.Select(x => (double)x).ToArray() });
         }
+
+        statisticsSummary = await ProjectsClient.GetStatisticsSummaryAsync();
     }
 
     private async Task<TableData<ProjectDto>> ServerReload(TableState state)
