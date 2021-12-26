@@ -117,7 +117,7 @@
 
     private async Task<TableData<ActivityDto>> ServerReload(TableState state)
     {
-        var result = await ActivitiesClient.GetActivitiesAsync(state.Page, state.PageSize, ProjectId);
+        var result = await ActivitiesClient.GetActivitiesAsync(state.Page, state.PageSize, ProjectId, null);
 
         return new TableData<ActivityDto>() { TotalItems = result.TotalItems, Items = result.Items };
     }

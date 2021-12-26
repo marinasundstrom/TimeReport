@@ -10,13 +10,12 @@
 
             @if (MembershipId is null && users is not null)
             {
-                <MudSelect T="UserDto" Label="User" Class="mb-6" Variant="Variant.Outlined" @bind-Value="User" ToStringFunc="u => u?.GetDisplayName()"
-                           For="() => User">
-                    @foreach (var user in users)
-                    {
-                        <MudSelectItem Value="@user" />
-                    }
-                </MudSelect>
+                <MudAutocomplete T="UserDto" Label="User"  Class="mb-6" Variant="Variant.Outlined" @bind-Value="User" SearchFunc="@Search1"
+                                 For="() => User"
+                                 ToStringFunc="u => u?.GetDisplayName()"
+                                 ResetValueOnEmptyText="true"
+                                 CoerceText="true" CoerceValue="true"
+                                 AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
             }
 
         </DialogContent>
@@ -43,7 +42,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var page = await UsersClient.GetUsersAsync(0, 10);
+        var page = await UsersClient.GetUsersAsync(0, 10, null);
         users = page.Items;
 
         if (MembershipId is not null)
@@ -71,5 +70,12 @@
         }
 
         Modal.Close(DialogResult.Ok(result));
+    }
+
+    private async Task<IEnumerable<UserDto>> Search1(string value)
+    {
+        var page = await UsersClient.GetUsersAsync(0, 10, value);
+
+        return page.Items;
     }
 }

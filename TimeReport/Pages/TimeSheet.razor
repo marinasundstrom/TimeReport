@@ -30,16 +30,11 @@
 
             <ToolBarContent>
                 <MudButton Variant="@Variant.Filled" Color="Color.Primary" Class="me-2" StartIcon="@Icons.Material.Filled.Add" OnClick="NewActivity">New activity</MudButton>
-                @if (Users is not null)
-                {
-                    <MudSelect Label="User" Variant="Variant.Outlined" Class="me-2" Margin="Margin.Dense" Value="User" ValueChanged="async (UserDto v) => await OnUserChanged(v)" ToStringFunc="u => u?.GetDisplayName()"
-                               For="() => User">
-                        @foreach (var user in Users)
-                        {
-                            <MudSelectItem Value="@user" />
-                        }
-                    </MudSelect>
-                }
+                <MudAutocomplete T="UserDto" Label="User" Class="me-2" Margin="Margin.Dense" Variant="Variant.Outlined" Value="User" ValueChanged="OnUserChanged" SearchFunc="@Search1"
+                                 For="() => User"
+                                 ToStringFunc="u => u?.GetDisplayName()"
+                                 CoerceText="false" CoerceValue="false"
+                                 AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
                 <MudButton StartIcon="@Icons.Material.Filled.List">Templates</MudButton>
                 <MudSpacer />
                 <MudText Typo="@Typo.body1" Class="ms-4 me-2"><b>Status:</b> </MudText>
@@ -142,12 +137,12 @@
 
         try
         {
-            var page = await UsersClient.GetUsersAsync(0, 10);
+            var page = await UsersClient.GetUsersAsync(0, 10, null);
             Users = page.Items;
 
             User = Users.FirstOrDefault();
 
-            var page2 = await ActivitiesClient.GetActivitiesAsync(0, 10, null);
+            var page2 = await ActivitiesClient.GetActivitiesAsync(0, 10, null, null);
             activities = page2.Items;
         }
         catch (Exception e)
@@ -291,6 +286,8 @@
 
     async Task OnUserChanged(UserDto user)
     {
+        if (user is null) return;
+
         User = user;
         await LoadTimeSheet();
     }
@@ -418,6 +415,13 @@
 
             Snackbar.Add("Failed to update description", Severity.Error);
         }
+    }
+
+    private async Task<IEnumerable<UserDto>> Search1(string value)
+    {
+        var page = await UsersClient.GetUsersAsync(0, 10, value);
+
+        return page.Items;
     }
 
     bool IsWeekend(DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;

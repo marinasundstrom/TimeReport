@@ -19,7 +19,7 @@ public class ActivitiesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null)
+    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null)
     {
         var query = context.Activities
             .Include(x => x.Project)
@@ -30,6 +30,11 @@ public class ActivitiesController : ControllerBase
         if(projectId is not null)
         {
             query = query.Where(activity => activity.Project.Id == projectId);
+        }
+
+        if(searchString is not null)
+        {
+            query = query.Where(activity => activity.Name.ToLower().Contains(searchString.ToLower()));
         }
 
         var totalItems = await query.CountAsync();

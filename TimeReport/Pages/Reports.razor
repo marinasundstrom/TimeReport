@@ -62,7 +62,7 @@
     {
         this.user = user;
 
-        var page = await ProjectsClient.GetProjectsAsync(user?.Id, 0, 10);
+        var page = await ProjectsClient.GetProjectsAsync(user?.Id, 0, 10, null);
         projects = page.Items;
         options = new HashSet<ProjectDto>();
     }
@@ -73,10 +73,10 @@
         {
             isLoading = true;
 
-            var page = await UsersClient.GetUsersAsync(0, 10);
+            var page = await UsersClient.GetUsersAsync(0, 10, null);
             users = page.Items;
 
-            var page2 = await ProjectsClient.GetProjectsAsync(null, 0, 10);
+            var page2 = await ProjectsClient.GetProjectsAsync(null, 0, 10, null);
             projects = page2.Items;
         }
         catch (Exception e)

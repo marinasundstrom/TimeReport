@@ -19,7 +19,7 @@ public class ProjectsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ProjectDto>>> GetProjects(string? userId = null, int page = 0, int pageSize = 10)
+    public async Task<ActionResult<ItemsResult<ProjectDto>>> GetProjects(string? userId = null, int page = 0, int pageSize = 10, string? searchString = null)
     {
         var query = context.Projects
             .Include(p => p.Memberships)
@@ -33,6 +33,11 @@ public class ProjectsController : ControllerBase
         if(userId is not null)
         {
             query = query.Where(p => p.Memberships.Any(x => x.User.Id ==userId));
+        }
+
+        if (searchString is not null)
+        {
+            query = query.Where(p => p.Name.ToLower().Contains(searchString.ToLower()));
         }
 
         var totalItems = await query.CountAsync();

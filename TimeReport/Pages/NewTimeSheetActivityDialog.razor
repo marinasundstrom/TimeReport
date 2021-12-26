@@ -7,16 +7,12 @@
 
     <MudDialog>
         <DialogContent>
-            @if (Projects is not null)
-            {
-                <MudSelect T="ProjectDto" Label="Project" Class="mb-6" Variant="Variant.Outlined" Value="Project" ValueChanged="OnProjectChanged" ToStringFunc="x => x?.Name"
-                           For="() => Project">
-                    @foreach (var project in Projects)
-                    {
-                        <MudSelectItem Value="@project" />
-                    }
-                </MudSelect>
-            }
+            <MudAutocomplete T="ProjectDto" Label="Project" Class="mb-6" Variant="Variant.Outlined" Value="Project" ValueChanged="OnProjectChanged" SearchFunc="@Search"
+                             For="() => Project"
+                             ToStringFunc="p => p?.Name"
+                             ResetValueOnEmptyText="true"
+                             CoerceText="true" CoerceValue="true"
+                             AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
 
             @if (Activities is not null)
             {
@@ -63,13 +59,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var page = await ProjectsClient.GetProjectsAsync(UserId, 0, 10);
-        Projects = page.Items;
+
     }
 
     private async Task OnProjectChanged(ProjectDto project)
     {
-        var page = await ActivitiesClient.GetActivitiesAsync(0, 10, project.Id);
+        var page = await ActivitiesClient.GetActivitiesAsync(0, 10, project.Id, null);
         Activities = page.Items;
 
         Project = project;
@@ -93,5 +88,12 @@
             {
                 Date = date
             });
+    }
+
+    private async Task<IEnumerable<ProjectDto>> Search(string value)
+    {
+        var page = await ProjectsClient.GetProjectsAsync(UserId, 0, 10, value);
+
+        return page.Items;
     }
 }

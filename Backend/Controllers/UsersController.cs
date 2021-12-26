@@ -19,17 +19,28 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<UserDto>>> GetUsers(int page = 0, int pageSize = 10)
+    public async Task<ActionResult<ItemsResult<UserDto>>> GetUsers(int page = 0, int pageSize = 10, string? searchString = null)
     {
         var totalItems = await context.Users.CountAsync();
 
-        var users = await context.Users
+        var query =context.Users
             .OrderBy(p => p.Created)
             .Skip(pageSize * page)
             .Take(pageSize)
             .AsNoTracking()
-            .AsSplitQuery()
-            .ToListAsync();
+            .AsSplitQuery();
+
+        if (searchString is not null)
+        {
+            query = query.Where(p =>
+            p.FirstName.ToLower().Contains(searchString.ToLower())
+            || p.LastName.ToLower().Contains(searchString.ToLower())
+            || ((p.DisplayName ?? "").ToLower().Contains(searchString.ToLower()))
+            || p.SSN.ToLower().Contains(searchString.ToLower())
+            || p.Email.ToLower().Contains(searchString.ToLower()));
+        }
+
+        var users = await query.ToListAsync();
 
         var dtos = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted));
 
