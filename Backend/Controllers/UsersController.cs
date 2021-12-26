@@ -148,7 +148,7 @@ public class UsersController : ControllerBase
     }
 
     [HttpGet("{id}/Statistics")]
-    public async Task<ActionResult<Data>> GetStatistics(string id)
+    public async Task<ActionResult<Data>> GetStatistics(string id, DateTime? from = null, DateTime? to = null)
     {
         var projects = await context.Projects
             .Include(x => x.Memberships)
@@ -165,18 +165,18 @@ public class UsersController : ControllerBase
 
         const int monthSpan = 5;
 
-        DateTime dt = DateTime.Now.Date.AddMonths(-monthSpan);
+        DateTime lastDate = to?.Date ?? DateTime.Now.Date;
+        DateTime firstDate = from?.Date ?? lastDate.AddMonths(-monthSpan)!;
 
-        for (int i = 0; i <= monthSpan; i++)
+        for (DateTime dt = firstDate; dt <= lastDate; dt = dt.AddMonths(1))
         {
             months.Add(dt);
-
-            dt = dt.AddMonths(1);
         }
 
         List<Series> series = new();
 
-        var firstMonth = DateOnly.FromDateTime(DateTime.Now.Date.AddMonths(-monthSpan));
+        var firstMonth = DateOnly.FromDateTime(firstDate);
+        var lastMonth = DateOnly.FromDateTime(lastDate);
 
         foreach (var project in projects)
         {
@@ -185,7 +185,8 @@ public class UsersController : ControllerBase
             foreach (var month in months)
             {
                 var value = project.Activities.SelectMany(a => a.Entries)
-                    .Where(e => e.Date > firstMonth)
+                    .Where(e => e.Date.Month > firstMonth.Month)
+                    .Where(e => e.Date.Month <= lastMonth.Month)
                     .Where(e => e.Date.Year == month.Year && e.Date.Month == month.Month)
                     .Where(e => e.User.Id == id)
                     .Sum(x => x.Hours.GetValueOrDefault());

@@ -58,7 +58,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        data = await ProjectsClient.GetStatisticsAsync();
+        data = await ProjectsClient.GetStatisticsAsync(null, null);
 
         XAxisLabels = data.Labels.ToArray();
 

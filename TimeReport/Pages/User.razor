@@ -63,7 +63,7 @@
     {
         user = await UsersClient.GetUserAsync(UserId);
 
-        data = await UsersClient.GetStatisticsAsync(UserId);
+        data = await UsersClient.GetStatisticsAsync(UserId, null, null);
 
         XAxisLabels = data.Labels.ToArray();
 
