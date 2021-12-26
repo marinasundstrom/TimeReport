@@ -7,7 +7,7 @@ namespace TimeReport.Controllers;
 
 public record class ProjectDto(string Id, string Name, string? Description);
 
-public record class ActivityDto(string Id, string Name, string? Description, ProjectDto Project);
+public record class ActivityDto(string Id, string Name, string? Description, decimal? HourlyRate, ProjectDto Project);
 
 public record class TimeSheetDto(string Id, int Year, int Week, TimeSheetStatusDto Status, UserDto User, IEnumerable<TimeSheetActivityDto> Activities);
 

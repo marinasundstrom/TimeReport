@@ -30,11 +30,13 @@
         <HeaderContent>
             <MudTh>Name</MudTh>
             <MudTh>Description</MudTh>
+            <MudTh>Hourly Rate</MudTh>
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate Context="activity">
             <MudTd DataLabel="Name">@activity.Name</MudTd>
             <MudTd DataLabel="Description">@activity.Description</MudTd>
+            <MudTd DataLabel="Hourly Rate">@activity.HourlyRate</MudTd>
             <MudTd>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditActivityClicked(activity)" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@

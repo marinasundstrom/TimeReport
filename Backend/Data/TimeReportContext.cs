@@ -256,6 +256,8 @@ public class TimeSheetActivity : AuditableEntity, ISoftDelete
 
     public List<Entry> Entries { get; set; } = new List<Entry>();
 
+    // public decimal? HourlyRate { get; set; }
+
     public DateTime? Deleted { get; set; }
     public string? DeletedBy { get; set; }
 }

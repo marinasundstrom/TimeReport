@@ -1491,6 +1491,11 @@
             "type": "string",
             "nullable": true
           },
+          "hourlyRate": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
+          },
           "project": {
             "$ref": "#/components/schemas/ProjectDto"
           }
@@ -1522,6 +1527,11 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "hourlyRate": {
+            "type": "number",
+            "format": "decimal",
+            "nullable": true
           }
         }
       },
@@ -1534,6 +1544,11 @@
           },
           "description": {
             "type": "string",
+            "nullable": true
+          },
+          "hourlyRate": {
+            "type": "number",
+            "format": "decimal",
             "nullable": true
           }
         }

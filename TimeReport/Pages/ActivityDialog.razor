@@ -11,6 +11,8 @@
 
             <MudTextField Lines="3" Label="Description" Class="mb-6" Variant="Variant.Outlined" @bind-Value="Description" For="() => Description" />
 
+            <MudNumericField Label="Hourly Rate" Class="mb-6" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" @bind-Value="HourlyRate" For="() => HourlyRate" HideSpinButtons="true" />
+
         </DialogContent>
 
         <DialogActions>
@@ -33,6 +35,8 @@
 
     public string? Description { get; set; }
 
+    public decimal? HourlyRate { get; set; }
+
     protected override async Task OnInitializedAsync()
     {
         if(ActivityId is not null)
@@ -41,6 +45,7 @@
 
             Name = result.Name;
             Description = result.Description;
+            HourlyRate = result.HourlyRate;
         }
     }
 
@@ -53,7 +58,8 @@
             result = await ActivitiesClient.CreateActivityAsync(ProjectId, new CreateActivityDto
             {
                 Name = Name,
-                Description = Description
+                Description = Description,
+                HourlyRate = HourlyRate
             });
         }
         else
@@ -61,7 +67,8 @@
             result = await ActivitiesClient.UpdateActivityAsync(ActivityId, new UpdateActivityDto
             {
                 Name = Name,
-                Description = Description
+                Description = Description,
+                HourlyRate = HourlyRate
             });
         }
 

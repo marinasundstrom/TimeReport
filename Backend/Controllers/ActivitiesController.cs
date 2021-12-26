@@ -39,7 +39,7 @@ public class ActivitiesController : ControllerBase
             .Take(pageSize)   
             .ToListAsync();
 
-        var dtos = activities.Select(activity => new ActivityDto(activity.Id, activity.Name, activity.Description, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description)));
+        var dtos = activities.Select(activity => new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description)));
         
         return Ok(new ItemsResult<ActivityDto>(dtos, totalItems));
     }
@@ -59,7 +59,7 @@ public class ActivitiesController : ControllerBase
             return NotFound();
         }
 
-        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
+        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
         return Ok(dto);
     }
 
@@ -81,14 +81,15 @@ public class ActivitiesController : ControllerBase
             Id = Guid.NewGuid().ToString(),
             Name = createActivityDto.Name,
             Description = createActivityDto.Description,
-            Project = project
+            Project = project,
+            HourlyRate = createActivityDto.HourlyRate
         };
 
         context.Activities.Add(activity);
 
         await context.SaveChangesAsync();
 
-        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
+        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
         return Ok(dto);
     }
 
@@ -108,10 +109,11 @@ public class ActivitiesController : ControllerBase
 
         activity.Name = updateActivityDto.Name;
         activity.Description = updateActivityDto.Description;
+        activity.HourlyRate = updateActivityDto.HourlyRate;
 
         await context.SaveChangesAsync();
 
-        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
+        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
         return Ok(dto);
     }
 
@@ -167,6 +169,6 @@ public class ActivitiesController : ControllerBase
     }
 }
 
-public record class CreateActivityDto(string Name, string? Description);
+public record class CreateActivityDto(string Name, string? Description, decimal? HourlyRate);
 
-public record class UpdateActivityDto(string Name, string? Description);
+public record class UpdateActivityDto(string Name, string? Description, decimal? HourlyRate);
