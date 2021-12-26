@@ -211,7 +211,7 @@
 
             ActivitiesModels.Add(activityModel);
 
-            foreach (var dayDate in DateTimeHelpers.GetDatesInWeek(DateTime.Now.Year, Week.GetValueOrDefault()))
+            foreach (var dayDate in DateTimeHelpers.GetDatesInWeek(Year.GetValueOrDefault(), Week.GetValueOrDefault()))
             {
                 var entry = activity.Entries.FirstOrDefault(x => x.Date.Date == dayDate.Date);
 
