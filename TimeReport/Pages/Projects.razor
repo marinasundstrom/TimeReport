@@ -25,6 +25,11 @@
 
 <MudTable T="ProjectDto" ServerData="@(new Func<TableState, Task<TableData<ProjectDto>>>(ServerReload))"
           Hover="true" @ref="table" OnRowClick="(TableRowClickEventArgs<ProjectDto> project) => GotToProject(project.Item)" Class="mt-4">
+    <ToolBarContent>
+        <MudSpacer />
+        <MudTextField T="string" ValueChanged="@(s => OnSearch(s))" Placeholder="Search" Adornment="Adornment.Start" Immediate="true" DebounceInterval="500"
+                      AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
     <HeaderContent>
         <MudTh>Name</MudTh>
         <MudTh>Description</MudTh>
@@ -52,6 +57,7 @@
 @code {
     MudTable<ProjectDto> table;
     StatisticsSummary statisticsSummary;
+    string searchString;
 
     Data? data;
 
@@ -79,9 +85,15 @@
 
     private async Task<TableData<ProjectDto>> ServerReload(TableState state)
     {
-        var page = await ProjectsClient.GetProjectsAsync(null, state.Page, state.PageSize, null);
+        var page = await ProjectsClient.GetProjectsAsync(null, state.Page, state.PageSize, searchString);
 
         return new TableData<ProjectDto>() { TotalItems = page.TotalItems, Items = page.Items };
+    }
+
+    private void OnSearch(string text)
+    {
+        searchString = text;
+        table.ReloadServerData();
     }
 
     private void GotToProject(ProjectDto project)
