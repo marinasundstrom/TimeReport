@@ -3,6 +3,7 @@
 @inject IDialogService DialogService
 @inject IActivitiesClient ActivitiesClient
 @inject IProjectsClient ProjectsClient
+@inject IExpensesClient ExpensesClient
 
 @if (project is not null)
 {
@@ -28,6 +29,38 @@
             <MudTd>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditActivityClicked(activity)" />
                 @* <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteOption(option)" /> *@
+            </MudTd>
+        </RowTemplate>
+        <NoRecordsContent>
+            <MudText>No matching records found</MudText>
+        </NoRecordsContent>
+        <LoadingContent>
+            <MudText>Loading...</MudText>
+        </LoadingContent>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+
+    <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true" Class="mt-6">Expenses</MudText>
+
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="OnAddExpenseClicked">New expense</MudButton>
+
+    <MudTable T="ExpenseDto" ServerData="@(new Func<TableState, Task<TableData<ExpenseDto>>>(ServerReload3))"
+              Hover="true" @ref="table3" Class="mt-4 mb-2" OnRowClick="e => GotToExpense(e.Item)">
+        <HeaderContent>
+            <MudTh><MudTableSortLabel T="ExpenseDto" SortLabel="Date">Date</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel T="ExpenseDto" SortLabel="Description">Description</MudTableSortLabel></MudTh>
+            <MudTh><MudTableSortLabel T="ExpenseDto" SortLabel="Amount">Amount</MudTableSortLabel></MudTh>
+            <MudTh></MudTh>
+        </HeaderContent>
+        <RowTemplate Context="expense">
+            <MudTd DataLabel="Name">@expense.Date.Date.ToShortDateString()</MudTd>
+            <MudTd DataLabel="Description">@expense.Description</MudTd>
+            <MudTd DataLabel="Amount">@expense.Amount.ToString("c")</MudTd>
+            <MudTd>
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditExpenseClicked(expense)" />
+                <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteExpense(expense)" />
             </MudTd>
         </RowTemplate>
         <NoRecordsContent>
@@ -88,6 +121,7 @@
     Data? data;
     MudTable<ActivityDto> table;
     MudTable<ProjectMembershipDto> table2;
+    MudTable<ExpenseDto> table3;
     StatisticsSummary statisticsSummary;
 
     private ChartOptions options = new ChartOptions()
@@ -130,6 +164,14 @@
             state.SortLabel, state.SortDirection == MudBlazor.SortDirection.None ? null : state.SortDirection == MudBlazor.SortDirection.Descending ? TimeReport.Client.SortDirection.Desc : TimeReport.Client.SortDirection.Asc);
 
         return new TableData<ProjectMembershipDto>() { TotalItems = result.TotalItems, Items = result.Items };
+    }
+
+    private async Task<TableData<ExpenseDto>> ServerReload3(TableState state)
+    {
+        var result = await ExpensesClient.GetExpensesAsync(state.Page, state.PageSize, ProjectId, null,
+            state.SortLabel, state.SortDirection == MudBlazor.SortDirection.None ? null : state.SortDirection == MudBlazor.SortDirection.Descending ? TimeReport.Client.SortDirection.Desc : TimeReport.Client.SortDirection.Asc);
+
+        return new TableData<ExpenseDto>() { TotalItems = result.TotalItems, Items = result.Items };
     }
 
     private async Task OnNewActivityClicked()
@@ -209,5 +251,54 @@
     private void GotToMember(ProjectMembershipDto membership)
     {
         NavigationManager.NavigateTo($"/users/{membership.User.Id}");
+    }
+
+    private async Task OnAddExpenseClicked()
+    {
+        DialogParameters parameters = new();
+        parameters.Add(nameof(ExpenseDialog.ProjectId), project.Id);
+
+        var dialogRef = DialogService.Show<ExpenseDialog>("New expense", parameters);
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table3.ReloadServerData();
+    }
+
+    private async Task OnEditExpenseClicked(ExpenseDto expense)
+    {
+        DialogParameters parameters = new();
+        parameters.Add(nameof(ExpenseDialog.ProjectId), expense.Project.Id);
+        parameters.Add(nameof(ExpenseDialog.ExpenseId), expense.Id);
+
+        var dialogRef = DialogService.Show<ExpenseDialog>($"Edit expense", parameters);
+
+        var dialogResult = await dialogRef.Result;
+
+        if (dialogResult.Cancelled)
+            return;
+
+        table3.ReloadServerData();
+    }
+
+    async Task DeleteExpense(ExpenseDto expense)
+    {
+        var modalResult = await DialogService.ShowMessageBox($"Delete the expense?", "This cannot be undone.", yesText: "Yes", noText: "No");
+        if (!modalResult.GetValueOrDefault())
+        {
+            return;
+        }
+
+        await ExpensesClient.DeleteExpenseAsync(expense.Id);
+
+        table3.ReloadServerData();
+    }
+
+    private void GotToExpense(ExpenseDto expense)
+    {
+        //NavigationManager.NavigateTo($"/users/{membership.User.Id}");
     }
 }

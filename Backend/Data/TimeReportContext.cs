@@ -31,6 +31,16 @@ public class TimeReportContext : DbContext
             e.HasQueryFilter(i => i.Deleted == null);
         });
 
+        modelBuilder.Entity<Expense>(e =>
+        {
+            e.ToTable("Expenses", t => t.IsTemporal());
+
+            e.Property(x => x.Date)
+                .HasConversion(x => x.ToDateTime(TimeOnly.Parse("01:00")), x => DateOnly.FromDateTime(x));
+
+            e.HasQueryFilter(i => i.Deleted == null);
+        });
+
         modelBuilder.Entity<ProjectMembership>(e =>
         {
             e.ToTable("ProjectMemberships", t => t.IsTemporal());
@@ -68,6 +78,8 @@ public class TimeReportContext : DbContext
     public DbSet<Project> Projects { get; set; } = null!;
 
     public DbSet<ProjectMembership> ProjectMemberships { get; set; } = null!;
+
+    public DbSet<Expense> Expenses { get; set; } = null!;
 
     public DbSet<Activity> Activities { get; set; } = null!;
 
@@ -135,6 +147,8 @@ public class Project : AuditableEntity, ISoftDelete
 
     public string? Description { get; set; }
 
+    public List<Expense> Expenses { get; set; } = new List<Expense>();
+
     public List<Activity> Activities { get; set; } = new List<Activity>();
 
     public List<Entry> Entries { get; set; } = new List<Entry>();
@@ -143,6 +157,31 @@ public class Project : AuditableEntity, ISoftDelete
 
     public DateTime? Deleted { get; set; }
     public string? DeletedBy { get; set; }
+}
+
+public class Expense : AuditableEntity, ISoftDelete
+{
+    public string Id { get; set; } = null!;
+
+    public Project Project { get; set; } = null!;
+
+    public ExpenseType Type { get; set; }
+
+    public DateOnly Date { get; set; }
+
+    public decimal Amount { get; set; }
+
+    public string? Description { get; set; }
+
+    public string? Attachment { get; set; }
+
+    public DateTime? Deleted { get; set; }
+    public string? DeletedBy { get; set; }
+}
+
+public enum ExpenseType
+{
+    Purchase = 1
 }
 
 public class ProjectMembership : AuditableEntity, ISoftDelete

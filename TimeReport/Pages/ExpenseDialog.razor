@@ -1,0 +1,78 @@
+﻿@using System.ComponentModel.DataAnnotations
+@inject IExpensesClient ExpensesClient
+
+<EditForm Model="@this" OnValidSubmit="OnSubmit">
+    <DataAnnotationsValidator />
+
+    <MudDialog>
+        <DialogContent>
+
+            <MudDatePicker Label="Date" Class="mb-6" Variant="Variant.Outlined" @bind-Date="Date" For="() => Date" />
+
+            <MudTextField Lines="3" Label="Description" Class="mb-6" Variant="Variant.Outlined" @bind-Value="Description" For="() => Description" />
+
+            <MudNumericField Label="Hourly Rate" Class="mb-6" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" @bind-Value="Amount" For="() => Amount" HideSpinButtons="true" />
+
+        </DialogContent>
+
+        <DialogActions>
+            <MudButton OnClick="() => Modal.Cancel()">Cancel</MudButton>
+            <MudButton ButtonType="ButtonType.Submit" Color="Color.Primary">@(ProjectId is null ? "Create" : "Save changes")</MudButton>
+        </DialogActions>
+    </MudDialog>
+
+</EditForm>
+
+@code {
+    [CascadingParameter] MudDialogInstance Modal { get; set; }
+
+    [Parameter] public string? ProjectId { get; set; }
+
+    [Parameter] public string? ExpenseId { get; set; }
+
+    [Required]
+    public DateTime? Date { get; set; } = DateTime.Now.Date;
+
+    public string? Description { get; set; }
+
+    [Required]
+    public decimal Amount { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(ProjectId is not null)
+        {
+            var result = await ExpensesClient.GetExpenseAsync(ExpenseId);
+
+            Date = result.Date.Date;
+            Description = result.Description;
+            Amount = result.Amount;
+        }
+    }
+
+    async Task OnSubmit()
+    {
+        ExpenseDto? result = null;
+
+        if (ExpenseId is null)
+        {
+            result = await ExpensesClient.CreateExpenseAsync(ProjectId, new CreateExpenseDto
+            {
+                Date = Date.GetValueOrDefault().Date,
+                Description = Description,
+                Amount = Amount
+            });
+        }
+        else
+        {
+            result = await ExpensesClient.UpdateExpenseAsync(ExpenseId, new UpdateExpenseDto
+            {
+                Date = Date.GetValueOrDefault().Date,
+                Description = Description,
+                Amount = Amount
+            });
+        }
+
+        Modal.Close(DialogResult.Ok(result));
+    }
+}

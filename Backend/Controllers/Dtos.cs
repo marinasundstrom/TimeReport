@@ -9,6 +9,8 @@ public record class ProjectDto(string Id, string Name, string? Description);
 
 public record class ActivityDto(string Id, string Name, string? Description, decimal? HourlyRate, ProjectDto Project);
 
+public record class ExpenseDto(string Id, DateTime Date, decimal Amount, string? Description, ProjectDto Project);
+
 public record class TimeSheetDto(string Id, int Year, int Week, TimeSheetStatusDto Status, UserDto User, IEnumerable<TimeSheetActivityDto> Activities);
 
 public record class TimeSheetActivityDto(string Id, string Name, string? Description, ProjectDto Project, IEnumerable<TimeSheetEntryDto> Entries);
