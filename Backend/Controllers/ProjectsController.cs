@@ -19,7 +19,7 @@ public class ProjectsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ProjectDto>>> GetProjects(string? userId = null, int page = 0, int pageSize = 10, string? searchString = null)
+    public async Task<ActionResult<ItemsResult<ProjectDto>>> GetProjects(string? userId = null, int page = 0, int pageSize = 10, string? searchString = null, string? sortBy = null, SortDirection? sortDirection = null)
     {
         var query = context.Projects
             .Include(p => p.Memberships)
@@ -41,6 +41,11 @@ public class ProjectsController : ControllerBase
         }
 
         var totalItems = await query.CountAsync();
+
+        if (sortBy is not null)
+        {
+            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
+        }
 
         var projects = await query.ToArrayAsync();
 
@@ -314,7 +319,7 @@ public class ProjectsController : ControllerBase
 
     [HttpGet("{id}/Memberships")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10)
+    public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10, string? sortBy = null, SortDirection? sortDirection = null)
     {
         var project = await context.Projects
             .OrderBy(p => p.Created)
@@ -331,7 +336,12 @@ public class ProjectsController : ControllerBase
                 .Where(m => m.Project.Id == project.Id);
 
         var totalItems = await query.CountAsync();
-                
+
+        if (sortBy is not null)
+        {
+            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
+        }
+
         var memberships = await query
                 .Include(m => m.User)
                 .Skip(pageSize * page)

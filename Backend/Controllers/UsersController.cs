@@ -19,11 +19,9 @@ public class UsersController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<UserDto>>> GetUsers(int page = 0, int pageSize = 10, string? searchString = null)
+    public async Task<ActionResult<ItemsResult<UserDto>>> GetUsers(int page = 0, int pageSize = 10, string? searchString = null, string? sortBy = null, SortDirection? sortDirection = null)
     {
-        var totalItems = await context.Users.CountAsync();
-
-        var query =context.Users
+        var query = context.Users
             .OrderBy(p => p.Created)
             .Skip(pageSize * page)
             .Take(pageSize)
@@ -38,6 +36,13 @@ public class UsersController : ControllerBase
             || ((p.DisplayName ?? "").ToLower().Contains(searchString.ToLower()))
             || p.SSN.ToLower().Contains(searchString.ToLower())
             || p.Email.ToLower().Contains(searchString.ToLower()));
+        }
+
+        var totalItems = await query.CountAsync();
+
+        if (sortBy is not null)
+        {
+            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
         }
 
         var users = await query.ToListAsync();
@@ -135,13 +140,18 @@ public class UsersController : ControllerBase
 
     [HttpGet("{id}/Memberships")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10)
+    public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10, string? sortBy = null, SortDirection? sortDirection = null)
     {
         var query = context.ProjectMemberships
             .OrderBy(p => p.Created)
             .Where(x => x.User.Id == id);
 
-        var totalItems = await context.ProjectMemberships.CountAsync();
+        var totalItems = await query.CountAsync();
+
+        if (sortBy is not null)
+        {
+            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
+        }
 
         var projectMemberships = await query
             .Include(m => m.Project)

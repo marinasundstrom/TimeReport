@@ -64,7 +64,7 @@
 
     private async Task OnProjectChanged(ProjectDto project)
     {
-        var page = await ActivitiesClient.GetActivitiesAsync(0, 10, project.Id, null);
+        var page = await ActivitiesClient.GetActivitiesAsync(0, 10, project.Id, null, null, null);
         Activities = page.Items;
 
         Project = project;
@@ -92,7 +92,7 @@
 
     private async Task<IEnumerable<ProjectDto>> Search(string value)
     {
-        var page = await ProjectsClient.GetProjectsAsync(UserId, 0, 10, value);
+        var page = await ProjectsClient.GetProjectsAsync(UserId, 0, 10, value, null, null);
 
         return page.Items;
     }

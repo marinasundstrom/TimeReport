@@ -15,11 +15,11 @@
                       AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
-        <MudTh>First Name</MudTh>
-        <MudTh>Last Name</MudTh>
+        <MudTh><MudTableSortLabel T="UserDto" SortLabel="FirstName">First Name</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel T="UserDto" SortLabel="LastName">Last Name</MudTableSortLabel></MudTh>
         <MudTh>Display Name</MudTh>
-        <MudTh>SSN</MudTh>
-        <MudTh>Email</MudTh>
+        <MudTh><MudTableSortLabel T="UserDto" SortLabel="Ssn">SSN</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel T="UserDto" SortLabel="Email">Email</MudTableSortLabel></MudTh>
         <MudTh></MudTh>
     </HeaderContent>
     <RowTemplate Context="user">
@@ -55,7 +55,8 @@
 
     private async Task<TableData<UserDto>> ServerReload(TableState state)
     {
-        var page = await UsersClient.GetUsersAsync(state.Page, state.PageSize, searchString);
+        var page = await UsersClient.GetUsersAsync(state.Page, state.PageSize, searchString,
+            state.SortLabel, state.SortDirection == MudBlazor.SortDirection.None ? null : state.SortDirection == MudBlazor.SortDirection.Descending ? TimeReport.Client.SortDirection.Desc : TimeReport.Client.SortDirection.Asc);
 
         return new TableData<UserDto>() { TotalItems = page.TotalItems, Items = page.Items };
     }

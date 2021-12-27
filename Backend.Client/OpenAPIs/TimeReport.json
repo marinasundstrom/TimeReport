@@ -75,6 +75,32 @@
               "nullable": true
             },
             "x-position": 4
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 5
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "nullable": true,
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SortDirection"
+                    }
+                  ]
+                }
+              ]
+            },
+            "x-position": 6
           }
         ],
         "responses": {
@@ -305,6 +331,32 @@
               "nullable": true
             },
             "x-position": 4
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 5
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "nullable": true,
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SortDirection"
+                    }
+                  ]
+                }
+              ]
+            },
+            "x-position": 6
           }
         ],
         "responses": {
@@ -630,6 +682,32 @@
               "default": 10
             },
             "x-position": 3
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "nullable": true,
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SortDirection"
+                    }
+                  ]
+                }
+              ]
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -1204,6 +1282,32 @@
               "nullable": true
             },
             "x-position": 3
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "nullable": true,
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SortDirection"
+                    }
+                  ]
+                }
+              ]
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -1385,6 +1489,32 @@
               "default": 10
             },
             "x-position": 3
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 4
+          },
+          {
+            "name": "sortDirection",
+            "in": "query",
+            "schema": {
+              "oneOf": [
+                {
+                  "nullable": true,
+                  "oneOf": [
+                    {
+                      "$ref": "#/components/schemas/SortDirection"
+                    }
+                  ]
+                }
+              ]
+            },
+            "x-position": 5
           }
         ],
         "responses": {
@@ -1543,6 +1673,18 @@
             "nullable": true
           }
         }
+      },
+      "SortDirection": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Desc",
+          "Asc"
+        ],
+        "enum": [
+          "Desc",
+          "Asc"
+        ]
       },
       "CreateActivityDto": {
         "type": "object",
@@ -1714,7 +1856,7 @@
           "id": {
             "type": "string"
           },
-          "projects": {
+          "project": {
             "$ref": "#/components/schemas/ProjectDto"
           },
           "user": {

@@ -19,7 +19,7 @@ public class ActivitiesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null)
+    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, SortDirection? sortDirection = null)
     {
         var query = context.Activities
             .Include(x => x.Project)
@@ -27,17 +27,22 @@ public class ActivitiesController : ControllerBase
             .AsNoTracking()
             .AsSplitQuery();
 
-        if(projectId is not null)
+        if (projectId is not null)
         {
             query = query.Where(activity => activity.Project.Id == projectId);
         }
 
-        if(searchString is not null)
+        if (searchString is not null)
         {
             query = query.Where(activity => activity.Name.ToLower().Contains(searchString.ToLower()));
         }
 
         var totalItems = await query.CountAsync();
+
+        if (sortBy is not null)
+        {
+            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
+        }
 
         var activities = await query
             .Skip(pageSize * page)
