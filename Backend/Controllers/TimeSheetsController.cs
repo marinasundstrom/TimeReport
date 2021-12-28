@@ -27,6 +27,63 @@ public class TimeSheetsController : ControllerBase
         this.context = context;
     }
 
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<ActionResult<ItemsResult<TimeSheetDto>>> GetTimeSheets(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, SortDirection? sortDirection = null)
+    {
+        var query = context.TimeSheets
+            .Include(x => x.User)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Entries)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Activity)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Project)
+            .Include(x => x.Activities)
+            .ThenInclude(x => x.Activity)
+            .ThenInclude(x => x.Project)
+            .OrderByDescending(x => x.Year)
+            .ThenByDescending(x => x.Week)
+            .AsNoTracking()
+            .AsSplitQuery();
+
+        if (projectId is not null)
+        {
+            query = query.Where(timeSheet => timeSheet.Activities.Any(x => x.Project.Id == projectId));
+        }
+
+        if (searchString is not null)
+        {
+            query = query.Where(timeSheet => timeSheet.Id.ToLower().Contains(searchString.ToLower()));
+        }
+
+        var totalItems = await query.CountAsync();
+
+        if (sortBy is not null)
+        {
+            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
+        }
+
+        var timeSheets = await query
+            .Skip(pageSize * page)
+            .Take(pageSize)
+            .ToListAsync();
+
+        var results = new ItemsResult<TimeSheetDto>(
+            timeSheets.Select(timeSheet =>
+            {
+                var activities = timeSheet.Activities
+                    .OrderBy(e => e.Created)
+                    .Select(e => new TimeSheetActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description),
+                        e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description))));
+
+                return new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted), activities);
+            }),
+            totalItems);
+
+        return Ok(results);
+    }
+
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<TimeSheetDto>> GetTimeSheet([FromRoute] string id, CancellationToken cancellationToken)
