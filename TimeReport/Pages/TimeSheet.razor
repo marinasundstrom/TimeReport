@@ -336,6 +336,7 @@
         if (user is null) return;
 
         User = user;
+        UserId = user.Id;
 
         NavigationManager.NavigateTo($"/timesheet/{Year}/{Week}?userId={user.Id}", replace: true);
 
