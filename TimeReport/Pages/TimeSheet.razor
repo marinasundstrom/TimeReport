@@ -139,7 +139,8 @@
     [Parameter]
     public int? Week { get; set; }
 
-    [SupplyParameterFromQuery]
+    [SupplyParameterFromQuery(Name = "userId")]
+    [Parameter]
     public string? UserId { get; set; }
 
     protected override async Task OnInitializedAsync()
@@ -204,6 +205,8 @@
         try
         {
             timeSheet = await TimeSheetsClient.GetTimeSheetForWeekAsync(Year.GetValueOrDefault(), Week.GetValueOrDefault(), UserId ?? User.Id);
+
+            User = timeSheet.User;
         }
         catch (ApiException<ProblemDetails> e)
         {
