@@ -29,7 +29,7 @@
                   GroupBy="@_groupDefinition">
 
             <ToolBarContent>
-                <MudButton Variant="@Variant.Filled" Color="Color.Primary" Class="me-2" StartIcon="@Icons.Material.Filled.Add" OnClick="NewActivity">New activity</MudButton>
+                <MudButton Variant="@Variant.Filled" Color="Color.Primary" Class="me-2" StartIcon="@Icons.Material.Filled.Add" OnClick="NewActivity" Disabled="timeSheet?.Status != TimeSheetStatusDto.Open">New activity</MudButton>
                 <MudAutocomplete T="UserDto" Label="User" Class="me-2" Margin="Margin.Dense" Variant="Variant.Outlined" Value="User" ValueChanged="OnUserChanged" SearchFunc="@Search1"
                                  For="() => User"
                                  ToStringFunc="u => u?.GetDisplayName()"
@@ -38,8 +38,11 @@
                 <MudButton StartIcon="@Icons.Material.Filled.List">Templates</MudButton>
                 <MudSpacer />
                 <MudText Typo="@Typo.body1" Class="ms-4 me-2"><b>Status:</b> </MudText>
-                <MudText Typo="@Typo.body1" Class="me-4">Open</MudText>
-                <MudIconButton Icon="@Icons.Material.Filled.Close"></MudIconButton>
+                <MudText Typo="@Typo.body1" Class="me-4">@timeSheet?.Status</MudText>
+                @if (timeSheet?.Status == TimeSheetStatusDto.Open)
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Close" @onclick="OnCloseClicked"></MudIconButton>
+                }
             </ToolBarContent>
 
             <HeaderContent>
@@ -71,7 +74,7 @@
                 {
                     <MudTd DataLabel="@entry.Date.DayOfWeek.ToString()">
                         <div @onclick="() => FocusEntry(activityLine, entry)">
-                            <MudNumericField T="double?" Class="@((IsWeekend(entry.Date) ? "weekendEntry" : null) + " " + IsEntrySelectedCss(entry))" Immediate="true" DebounceInterval="debounceInterval" Value="entry.Hours" ValueChanged="(value) => OnHoursChanged(value, activityLine, entry)" Variant="Variant.Filled" Margin="Margin.Dense" HideSpinButtons="true" />
+                            <MudNumericField Disabled="timeSheet?.Status != TimeSheetStatusDto.Open" T="double?" Class="@((IsWeekend(entry.Date) ? "weekendEntry" : null) + " " + IsEntrySelectedCss(entry))" Immediate="true" DebounceInterval="debounceInterval" Value="entry.Hours" ValueChanged="(value) => OnHoursChanged(value, activityLine, entry)" Variant="Variant.Filled" Margin="Margin.Dense" HideSpinButtons="true" />
                         </div>
                     </MudTd>
                 }
@@ -79,7 +82,10 @@
                     <span>@activityLine.TotalHours h</span>
                 </MudTd>
                 <MudTd>
-                    <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteActivity(activityLine)" />
+                    @if (timeSheet?.Status == TimeSheetStatusDto.Open)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteActivity(activityLine)" />
+                    }
                 </MudTd>
             </RowTemplate>
 
@@ -102,7 +108,7 @@
             <MudCard Class="mt-4">
                 <MudCardContent>
                     <MudText Typo="@Typo.h6" Class="mb-2">@selectedActivity.Activity.Project.Name: @selectedActivity.Activity.Name - @selectedEntry.Date.ToShortDateString()</MudText>
-                    <MudTextField T="string?" Immediate="true" DebounceInterval="debounceInterval" Value="selectedEntry.Description" ValueChanged="(value) => OnDescriptionChanged(value, selectedActivity, selectedEntry)" Variant="Variant.Filled" Label="Description" Lines="3" />
+                    <MudTextField Disabled="timeSheet?.Status != TimeSheetStatusDto.Open" T="string?" Immediate="true" DebounceInterval="debounceInterval" Value="selectedEntry.Description" ValueChanged="(value) => OnDescriptionChanged(value, selectedActivity, selectedEntry)" Variant="Variant.Filled" Label="Description" Lines="3" />
                 </MudCardContent>
             </MudCard>
         }
@@ -144,6 +150,12 @@
 
             var page2 = await ActivitiesClient.GetActivitiesAsync(0, 10, null, null, null, null);
             activities = page2.Items;
+        }
+        catch (ApiException<ProblemDetails> e)
+        {
+            Snackbar.Add(e.Result.Detail, Severity.Error);
+            isLoading = false;
+            return;
         }
         catch (Exception e)
         {
@@ -187,6 +199,12 @@
         try
         {
             timeSheet = await TimeSheetsClient.GetTimeSheetForWeekAsync(Year.GetValueOrDefault(), Week.GetValueOrDefault(), User.Id);
+        }
+        catch (ApiException<ProblemDetails> e)
+        {
+            Snackbar.Add(e.Result.Detail, Severity.Error);
+            isLoading = false;
+            return;
         }
         catch (Exception e)
         {
@@ -277,6 +295,12 @@
             await TimeSheetsClient.DeleteActvityEntriesAsync(timeSheet.Id, activityLine.Activity.Id);
 
             ActivitiesModels.Remove(activityLine);
+        }
+        catch (ApiException<ProblemDetails> e)
+        {
+            Snackbar.Add(e.Result.Detail, Severity.Error);
+            isLoading = false;
+            return;
         }
         catch (Exception)
         {
@@ -409,6 +433,12 @@
                 });
             }
         }
+        catch (ApiException<ProblemDetails> e)
+        {
+            Snackbar.Add(e.Result.Detail, Severity.Error);
+            isLoading = false;
+            return;
+        }
         catch
         {
             entry.Description = oldValue;
@@ -422,6 +452,13 @@
         var page = await UsersClient.GetUsersAsync(0, 10, value, null, null);
 
         return page.Items;
+    }
+
+    async Task OnCloseClicked()
+    {
+        await TimeSheetsClient.UpdateTimeSheetStatusAsync(timeSheet.Id, (int)TimeSheetStatusDto.Closed);
+
+        timeSheet.Status = TimeSheetStatusDto.Closed;
     }
 
     bool IsWeekend(DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;

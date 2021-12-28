@@ -73,7 +73,7 @@ public class TimeSheetsController : ControllerBase
             .Include(x => x.Activities)
             .AsSplitQuery();
 
-        if(userId is not null)
+        if (userId is not null)
         {
             query = query.Where(x => x.User.Id == userId);
         }
@@ -84,7 +84,7 @@ public class TimeSheetsController : ControllerBase
         {
             User? user = null;
 
-            if(userId is not null)
+            if (userId is not null)
             {
                 user = await context.Users.FirstAsync(x => x.Id == userId);
             }
@@ -115,7 +115,7 @@ public class TimeSheetsController : ControllerBase
         var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
             activities);
 
-        return Ok(dto); 
+        return Ok(dto);
     }
 
     /*
@@ -249,7 +249,15 @@ public class TimeSheetsController : ControllerBase
 
         if (timeSheet is null)
         {
-            return BadRequest();
+            return NotFound();
+        }
+
+        if (timeSheet.Status != TimeSheetStatus.Open)
+        {
+            return Problem(
+                          title: "Timesheet is closed",
+                          detail: $"Updating entries of a Timesheet when not in Open state is not allowed.",
+                          statusCode: StatusCodes.Status403Forbidden);
         }
 
         var date = DateOnly.FromDateTime(dto.Date);
@@ -259,23 +267,32 @@ public class TimeSheetsController : ControllerBase
 
         if (existingEntryWithDate is not null)
         {
-            // Entry for date already exists
+            return Problem(
+                          title: "Entry already exists",
+                          detail: $"Entry for this activity and date does already exist.",
+                          statusCode: StatusCodes.Status403Forbidden);
         }
 
         var project = await context.Projects
             .Include(x => x.Activities)
             .FirstOrDefaultAsync(x => x.Id == dto.ProjectId);
 
-        if(project is null)
+        if (project is null)
         {
-            // Project not found
+            return Problem(
+                           title: "Project not found",
+                           detail: $"No project with Id {dto.ProjectId} was found.",
+                           statusCode: StatusCodes.Status403Forbidden);
         }
 
         var activity = project!.Activities.FirstOrDefault(x => x.Id == dto.ActivityId);
 
         if (activity is null)
         {
-            // Activity not found
+            return Problem(
+                          title: "Activity not found",
+                          detail: $"No activity with Id {dto.ActivityId} was found.",
+                          statusCode: StatusCodes.Status403Forbidden);
         }
 
         var dateOnly = DateOnly.FromDateTime(dto.Date);
@@ -305,7 +322,7 @@ public class TimeSheetsController : ControllerBase
         var timeSheetActivity = await context.TimeSheetActivities
             .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id);
 
-        if(timeSheetActivity is null)
+        if (timeSheetActivity is null)
         {
             timeSheetActivity = new TimeSheetActivity
             {
@@ -359,14 +376,22 @@ public class TimeSheetsController : ControllerBase
 
         if (timeSheet is null)
         {
-            return BadRequest();
+            return NotFound();
+        }
+
+        if (timeSheet.Status != TimeSheetStatus.Open)
+        {
+            return Problem(
+                          title: "Timesheet is closed",
+                          detail: $"Updating entries of a Timesheet when not in Open state is not allowed.",
+                          statusCode: StatusCodes.Status403Forbidden);
         }
 
         var entry = timeSheet.Entries.FirstOrDefault(e => e.Id == entryId);
 
-        if(entry is null)
+        if (entry is null)
         {
-            return BadRequest();
+            return NotFound();
         }
 
         entry.Hours = dto.Hours;
@@ -401,6 +426,7 @@ public class TimeSheetsController : ControllerBase
 
     [HttpPut("{timeSheetId}/{entryId}/Details")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult<EntryDto>> UpdateEntryDetails([FromRoute] string timeSheetId, [FromRoute] string entryId, UpdateEntryDetailsDto dto, CancellationToken cancellationToken)
     {
         var timeSheet = await context.TimeSheets
@@ -419,6 +445,14 @@ public class TimeSheetsController : ControllerBase
             return BadRequest();
         }
 
+        if (timeSheet.Status != TimeSheetStatus.Open)
+        {
+            return Problem(
+                          title: "Timesheet is closed",
+                          detail: $"Updating entries of a Timesheet when not in Open state is not allowed.",
+                          statusCode: StatusCodes.Status403Forbidden);
+        }
+
         var entry = timeSheet.Entries.FirstOrDefault(e => e.Id == entryId);
 
         if (entry is null)
@@ -434,11 +468,12 @@ public class TimeSheetsController : ControllerBase
 
         var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description);
 
-        return Ok(newDto); 
+        return Ok(newDto);
     }
 
     [HttpDelete("{timeSheetId}/{activityId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
     public async Task<ActionResult> DeleteActvityEntries([FromRoute] string timeSheetId, [FromRoute] string activityId, CancellationToken cancellationToken)
     {
         var timeSheet = await context.TimeSheets
@@ -457,6 +492,14 @@ public class TimeSheetsController : ControllerBase
             return BadRequest();
         }
 
+        if (timeSheet.Status != TimeSheetStatus.Open)
+        {
+            return Problem(
+                          title: "Timesheet is closed",
+                          detail: $"Updating entries of a Timesheet when not in Open state is not allowed.",
+                          statusCode: StatusCodes.Status403Forbidden);
+        }
+
         var activity = await context!.Activities.FirstOrDefaultAsync(x => x.Id == activityId);
 
         if (activity is null)
@@ -466,7 +509,7 @@ public class TimeSheetsController : ControllerBase
 
         var entries = timeSheet.Entries.Where(e => e.Activity.Id == activityId);
 
-        foreach(var entry in entries)
+        foreach (var entry in entries)
         {
             context.Entries.Remove(entry);
         }
@@ -479,6 +522,33 @@ public class TimeSheetsController : ControllerBase
             context.TimeSheetActivities.Remove(timeSheetActivity);
         }
 
+        await context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpPut("{timeSheetId}/Status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> UpdateTimeSheetStatus([FromRoute] string timeSheetId, int statusCode)
+    {
+        var timeSheet = await context.TimeSheets
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.Project)
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.Activity)
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.Activity)
+            .ThenInclude(x => x.Project)
+            .AsSplitQuery()
+            .FirstAsync(x => x.Id == timeSheetId);
+
+        if (timeSheet is null)
+        {
+            return BadRequest();
+        }
+
+        timeSheet.Status = (TimeSheetStatus)statusCode;
         await context.SaveChangesAsync();
 
         return Ok();
