@@ -517,8 +517,9 @@
             await TimeSheetsClient.LockMonthAsync(timeSheet.Id);
 
             // Reload
-            //await LoadTimeSheet();
+            await LoadTimeSheet();
 
+            /*
             foreach (var activity in ActivitiesModels)
             {
                 foreach (var entryModel in activity.Entries)
@@ -528,6 +529,9 @@
                     entryModel.Status = value.GetValueOrDefault() ? EntryStatusDto.Locked : EntryStatusDto.Unlocked;
                 }
             }
+            */
+
+            StateHasChanged(); 
         }
         catch (ApiException<ProblemDetails> e)
         {
