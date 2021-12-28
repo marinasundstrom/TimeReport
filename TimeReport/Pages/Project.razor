@@ -52,12 +52,19 @@
             <MudTh><MudTableSortLabel T="ExpenseDto" SortLabel="Date">Date</MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel T="ExpenseDto" SortLabel="Description">Description</MudTableSortLabel></MudTh>
             <MudTh><MudTableSortLabel T="ExpenseDto" SortLabel="Amount">Amount</MudTableSortLabel></MudTh>
+            <MudTh>Attachment</MudTh>
             <MudTh></MudTh>
         </HeaderContent>
         <RowTemplate Context="expense">
             <MudTd DataLabel="Name">@expense.Date.Date.ToShortDateString()</MudTd>
             <MudTd DataLabel="Description">@expense.Description</MudTd>
             <MudTd DataLabel="Amount">@expense.Amount.ToString("c")</MudTd>
+            <MudTd DataLabel="Attachment">
+                @if (expense.Attachment is not null)
+                {
+                    <MudLink Href="@expense.Attachment">File</MudLink>
+                }
+            </MudTd>
             <MudTd>
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="async () => await OnEditExpenseClicked(expense)" />
                 <MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="async () => await DeleteExpense(expense)" />

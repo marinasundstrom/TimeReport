@@ -511,6 +511,54 @@
         }
       }
     },
+    "/api/Expenses/{id}/Attachment": {
+      "post": {
+        "tags": [
+          "Expenses"
+        ],
+        "operationId": "Expenses_UploadAttachment",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "file": {
+                    "type": "string",
+                    "format": "binary",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/Projects": {
       "get": {
         "tags": [
@@ -2013,6 +2061,10 @@
             "format": "decimal"
           },
           "description": {
+            "type": "string",
+            "nullable": true
+          },
+          "attachment": {
             "type": "string",
             "nullable": true
           },

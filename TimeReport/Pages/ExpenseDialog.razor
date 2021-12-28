@@ -13,6 +13,20 @@
 
             <MudNumericField Label="Hourly Rate" Class="mb-6" Variant="Variant.Outlined" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.AttachMoney" @bind-Value="Amount" For="() => Amount" HideSpinButtons="true" />
 
+            <MudText Typo="Typo.h6" Class="mb-4">Attachment</MudText>
+
+            <InputFile id="fileInput112" OnChange="UploadFile" hidden multiple accept=".jpg, .jpeg, .png, .pdf, .docx, .doc" />
+
+            <MudButton HtmlTag="label"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@Icons.Filled.CloudUpload"
+                       for="fileInput112">
+                Upload file
+            </MudButton>
+
+            <MudText Typo="Typo.body1">@file?.Name</MudText>
+
         </DialogContent>
 
         <DialogActions>
@@ -73,6 +87,18 @@
             });
         }
 
+        if (file is not null)
+        {
+            await ExpensesClient.UploadAttachmentAsync(result.Id, new FileParameter(file.OpenReadStream(10 * 10000 * 5), file.Name));
+        }
+
         Modal.Close(DialogResult.Ok(result));
+    }
+
+    IBrowserFile? file;
+
+    private void UploadFile(InputFileChangeEventArgs e)
+    {
+        file = e.GetMultipleFiles().First();
     }
 }

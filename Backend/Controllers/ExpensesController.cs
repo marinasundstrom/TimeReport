@@ -1,4 +1,6 @@
 ﻿
+using Azure.Storage.Blobs;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,10 +13,12 @@ namespace TimeReport.Controllers;
 public class ExpensesController : ControllerBase
 {
     private readonly TimeReportContext context;
+    private readonly BlobServiceClient blobServiceClient;
 
-    public ExpensesController(TimeReportContext context)
+    public ExpensesController(TimeReportContext context, BlobServiceClient blobServiceClient)
     {
         this.context = context;
+        this.blobServiceClient = blobServiceClient;
     }
 
     [HttpGet]
@@ -49,7 +53,7 @@ public class ExpensesController : ControllerBase
             .Take(pageSize)   
             .ToListAsync();
 
-        var dtos = expenses.Select(expense => new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description)));
+        var dtos = expenses.Select(expense => new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description)));
         
         return Ok(new ItemsResult<ExpenseDto>(dtos, totalItems));
     }
@@ -69,7 +73,7 @@ public class ExpensesController : ControllerBase
             return NotFound();
         }
 
-        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
+        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
         return Ok(dto);
     }
 
@@ -100,8 +104,55 @@ public class ExpensesController : ControllerBase
 
         await context.SaveChangesAsync();
 
-        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
+        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
         return Ok(dto);
+    }
+
+    [HttpPost("{id}/Attachment")]
+    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    public async Task<ActionResult> UploadAttachment([FromRoute] string id, IFormFile file)
+    {
+        var stream = file.OpenReadStream();
+
+        var expense = await context.Expenses
+            .Include(x => x.Project)
+            .AsSplitQuery()
+            .FirstOrDefaultAsync(x => x.Id == id);
+
+        if (expense is null)
+        {
+            return NotFound();
+        }
+
+        if (!string.IsNullOrEmpty(expense.Attachment))
+        {
+            return Problem(title: "Attachment could not be set", detail: "There is already an attachment for this expense.");
+        }
+
+        var blobContainerClient = blobServiceClient.GetBlobContainerClient("attachments");
+
+#if DEBUG
+        await blobContainerClient.CreateIfNotExistsAsync();
+#endif
+
+        var blobName = $"{expense.Id}-{file.FileName}";
+
+        var response = await blobContainerClient.UploadBlobAsync(blobName, file.OpenReadStream());
+
+        expense.Attachment = blobName;
+
+        await context.SaveChangesAsync();
+
+        var url = GetAttachmentUrl(expense.Attachment);
+
+        return Ok(url);
+    }
+
+    private static string? GetAttachmentUrl(string? name)
+    {
+        if (name is null) return null;
+
+        return name is null ? null : $"http://127.0.0.1:10000/devstoreaccount1/attachments/{name}";
     }
 
     [HttpPut("{id}")]
@@ -124,7 +175,7 @@ public class ExpensesController : ControllerBase
 
         await context.SaveChangesAsync();
 
-        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
+        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
         return Ok(dto);
     }
 
