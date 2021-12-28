@@ -84,7 +84,7 @@
 
     private void GotToTimeSheet(TimeSheetDto timeSheet)
     {
-        NavigationManager.NavigateTo($"/timeSheet/{timeSheet.Year}/{timeSheet.Week}?user={timeSheet.User.Id}");
+        NavigationManager.NavigateTo($"/timeSheet/{timeSheet.Year}/{timeSheet.Week}?userId={timeSheet.User.Id}");
     }
 
     private async Task OnNewTimeSheetClicked()
