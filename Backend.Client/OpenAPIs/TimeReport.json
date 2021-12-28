@@ -1625,6 +1625,41 @@
         }
       }
     },
+    "/api/TimeSheets/{timeSheetId}/CloseWeek": {
+      "post": {
+        "tags": [
+          "TimeSheets"
+        ],
+        "operationId": "TimeSheets_CloseWeek",
+        "parameters": [
+          {
+            "name": "timeSheetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/TimeSheets/{timeSheetId}/Status": {
       "put": {
         "tags": [
@@ -1650,6 +1685,41 @@
               "format": "int32"
             },
             "x-position": 2
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          },
+          "403": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/TimeSheets/{timeSheetId}/LockMonth": {
+      "post": {
+        "tags": [
+          "TimeSheets"
+        ],
+        "operationId": "TimeSheets_LockMonth",
+        "parameters": [
+          {
+            "name": "timeSheetId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "nullable": true
+            },
+            "x-position": 1
           }
         ],
         "responses": {
@@ -2476,6 +2546,14 @@
             "type": "integer",
             "format": "int32"
           },
+          "from": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "to": {
+            "type": "string",
+            "format": "date-time"
+          },
           "status": {
             "$ref": "#/components/schemas/TimeSheetStatusDto"
           },
@@ -2486,6 +2564,12 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TimeSheetActivityDto"
+            }
+          },
+          "infos": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MonthInfoDto"
             }
           }
         }
@@ -2550,6 +2634,34 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/EntryStatusDto"
+          }
+        }
+      },
+      "EntryStatusDto": {
+        "type": "string",
+        "description": "",
+        "x-enumNames": [
+          "Unlocked",
+          "Locked"
+        ],
+        "enum": [
+          "Unlocked",
+          "Locked"
+        ]
+      },
+      "MonthInfoDto": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "month": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isLocked": {
+            "type": "boolean"
           }
         }
       },
@@ -2578,6 +2690,9 @@
           "description": {
             "type": "string",
             "nullable": true
+          },
+          "status": {
+            "$ref": "#/components/schemas/EntryStatusDto"
           }
         }
       },

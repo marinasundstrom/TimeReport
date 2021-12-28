@@ -60,6 +60,11 @@ public class TimeReportContext : DbContext
             e.ToTable("Entries", t => t.IsTemporal());
         });
 
+        modelBuilder.Entity<MonthEntryGroup>(e =>
+        {
+            e.ToTable("MonthEntryGroups", t => t.IsTemporal());
+        });
+
         modelBuilder.Entity<TimeSheet>(e =>
         {
             e.ToTable("TimeSheets", t => t.IsTemporal());
@@ -86,6 +91,8 @@ public class TimeReportContext : DbContext
     public DbSet<Entry> Entries { get; set; } = null!;
 
     public DbSet<TimeSheet> TimeSheets { get; set; } = null!;
+
+    public DbSet<MonthEntryGroup> MonthEntryGroups { get; set; } = null!;
 
     public DbSet<TimeSheetActivity> TimeSheetActivities { get; set; } = null!;
 
@@ -250,11 +257,36 @@ public class Entry : AuditableEntity
 
     public TimeSheetActivity TimeSheetActivity { get; set; } = null!;
 
+    public MonthEntryGroup? MonthGroup { get; set; }
+
     public DateOnly Date { get; set; }
 
     public double? Hours { get; set; }
 
     public string? Description { get; set; }
+
+    public EntryStatus Status { get; set; } = EntryStatus.Unlocked;
+}
+
+public class MonthEntryGroup : AuditableEntity
+{
+    public string Id { get; set; } = null!;
+
+    public User User { get; set; } = null!;
+
+    public int Year { get; set; }
+
+    public int Month { get; set; }
+
+    public List<Entry> Entries { get; set; } = new List<Entry>();
+
+    public EntryStatus Status { get; set; } = EntryStatus.Unlocked;
+}
+
+public enum EntryStatus
+{
+    Unlocked,
+    Locked
 }
 
 public class TimeSheet : AuditableEntity, ISoftDelete
@@ -266,6 +298,10 @@ public class TimeSheet : AuditableEntity, ISoftDelete
     public int Year { get; set; }
 
     public int Week { get; set; }
+
+    public DateTime From { get; set; }
+
+    public DateTime To { get; set; }
 
     public TimeSheetStatus Status { get; set; }
 

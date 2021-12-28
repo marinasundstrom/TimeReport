@@ -39,6 +39,10 @@
                                  AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
                 <MudButton StartIcon="@Icons.Material.Filled.List">Templates</MudButton>
                 <MudSpacer />
+                @if (CanLockMonth)
+                {
+                    <MudButton Variant="@Variant.Filled" Color="Color.Primary" Class="me-2" StartIcon="@Icons.Material.Filled.Add" OnClick="LockMonth">Lock month</MudButton>
+                }
                 <MudText Typo="@Typo.body1" Class="ms-4 me-2"><b>Status:</b> </MudText>
                 <MudText Typo="@Typo.body1" Class="me-4">@timeSheet?.Status</MudText>
                 @if (timeSheet?.Status == TimeSheetStatusDto.Open)
@@ -76,7 +80,7 @@
                 {
                     <MudTd DataLabel="@entry.Date.DayOfWeek.ToString()">
                         <div @onclick="() => FocusEntry(activityLine, entry)">
-                            <MudNumericField Disabled="timeSheet?.Status != TimeSheetStatusDto.Open" T="double?" Class="@((IsWeekend(entry.Date) ? "weekendEntry" : null) + " " + IsEntrySelectedCss(entry))" Immediate="true" DebounceInterval="debounceInterval" Value="entry.Hours" ValueChanged="(value) => OnHoursChanged(value, activityLine, entry)" Variant="Variant.Filled" Margin="Margin.Dense" HideSpinButtons="true" />
+                            <MudNumericField Disabled="@(timeSheet.Status != TimeSheetStatusDto.Open || entry.Status == EntryStatusDto.Locked)" T="double?" Class="@((IsWeekend(entry.Date) ? "weekendEntry" : null) + " " + IsEntrySelectedCss(entry))" Immediate="true" DebounceInterval="debounceInterval" Value="entry.Hours" ValueChanged="(value) => OnHoursChanged(value, activityLine, entry)" Variant="Variant.Filled" Margin="Margin.Dense" HideSpinButtons="true" />
                         </div>
                     </MudTd>
                 }
@@ -110,7 +114,7 @@
             <MudCard Class="mt-4">
                 <MudCardContent>
                     <MudText Typo="@Typo.h6" Class="mb-2">@selectedActivity.Activity.Project.Name: @selectedActivity.Activity.Name - @selectedEntry.Date.ToShortDateString()</MudText>
-                    <MudTextField Disabled="timeSheet?.Status != TimeSheetStatusDto.Open" T="string?" Immediate="true" DebounceInterval="debounceInterval" Value="selectedEntry.Description" ValueChanged="(value) => OnDescriptionChanged(value, selectedActivity, selectedEntry)" Variant="Variant.Filled" Label="Description" Lines="3" />
+                    <MudTextField Disabled="@(timeSheet.Status != TimeSheetStatusDto.Open || selectedEntry.Status == EntryStatusDto.Locked)" T="string?" Immediate="true" DebounceInterval="debounceInterval" Value="selectedEntry.Description" ValueChanged="(value) => OnDescriptionChanged(value, selectedActivity, selectedEntry)" Variant="Variant.Filled" Label="Description" Lines="3" />
                 </MudCardContent>
             </MudCard>
         }
@@ -240,11 +244,14 @@
 
                 if (entry is null)
                 {
+                    var value = timeSheet?.Infos.Any(x => dayDate.Month == x.Month);
+
                     entryModel = new EntryModel
                     {
                         Id = null,
                         Date = dayDate,
-                        Hours = null
+                        Hours = null,
+                        Status = value.GetValueOrDefault() ? EntryStatusDto.Locked : EntryStatusDto.Unlocked
                     };
 
                     activityModel.Entries.Add(entryModel);
@@ -257,7 +264,8 @@
                     Id = entry.Id,
                     Date = entry.Date.Date,
                     Hours = entry.Hours,
-                    Description = entry.Description
+                    Description = entry.Description,
+                    Status = entry.Status
                 };
 
                 activityModel.Entries.Add(entryModel);
@@ -289,6 +297,13 @@
         }
 
         ActivitiesModels.Add(obj);
+
+        foreach (var entryModel in obj.Entries)
+        {
+            var value = timeSheet?.Infos.Any(x => entryModel.Date.Month == x.Month);
+
+            entryModel.Status = value.GetValueOrDefault() ? EntryStatusDto.Locked : EntryStatusDto.Unlocked;
+        }
     }
 
     async Task DeleteActivity(ActivityModel activityLine)
@@ -321,6 +336,9 @@
         if (user is null) return;
 
         User = user;
+
+        NavigationManager.NavigateTo($"/timesheet/{Year}/{Week}?userId={user.Id}", replace: true);
+
         await LoadTimeSheet();
     }
 
@@ -464,11 +482,65 @@
 
     async Task OnCloseClicked()
     {
-        await TimeSheetsClient.UpdateTimeSheetStatusAsync(timeSheet.Id, (int)TimeSheetStatusDto.Closed);
+        var result = await DialogService.ShowMessageBox("Close week?", "This will close this week's timesheet. Are you sure?", "Yes", "No");
 
-        timeSheet.Status = TimeSheetStatusDto.Closed;
+        if (!result.GetValueOrDefault())
+            return;
+        try
+        {
+            await TimeSheetsClient.UpdateTimeSheetStatusAsync(timeSheet.Id, (int)TimeSheetStatusDto.Closed);
+
+            timeSheet.Status = TimeSheetStatusDto.Closed;
+        }
+        catch (ApiException<ProblemDetails> e)
+        {
+            Snackbar.Add(e.Result.Detail, Severity.Error);
+            isLoading = false;
+            return;
+        }
+        catch
+        {
+            Snackbar.Add("Failed to close week.", Severity.Error);
+        }
+    }
+
+    async Task LockMonth()
+    {
+        try
+        {
+            var result = await DialogService.ShowMessageBox("Lock month?", "This will lock the past month. Are you sure?", "Yes", "No");
+
+            if (!result.GetValueOrDefault())
+                return;
+
+            await TimeSheetsClient.LockMonthAsync(timeSheet.Id);
+
+            // Reload
+            //await LoadTimeSheet();
+
+            foreach (var activity in ActivitiesModels)
+            {
+                foreach (var entryModel in activity.Entries)
+                {
+                    var value = timeSheet?.Infos.Any(x => entryModel.Date.Month == x.Month);
+
+                    entryModel.Status = value.GetValueOrDefault() ? EntryStatusDto.Locked : EntryStatusDto.Unlocked;
+                }
+            }
+        }
+        catch (ApiException<ProblemDetails> e)
+        {
+            Snackbar.Add(e.Result.Detail, Severity.Error);
+            isLoading = false;
+            return;
+        }
+        catch
+        {
+            Snackbar.Add("Failed to lock month", Severity.Error);
+        }
     }
 
     bool IsWeekend(DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
 
+    bool CanLockMonth => ActivitiesModels.SelectMany(a => a.Entries).Any() && ActivitiesModels.SelectMany(a => a.Entries).All(e => e.Status == EntryStatusDto.Unlocked) && timeSheet.From.Month != timeSheet.To.Month || timeSheet != null &&ISOWeek.ToDateTime(Year.GetValueOrDefault(), Week.GetValueOrDefault(), DayOfWeek.Sunday).Day == DateTime.DaysInMonth(timeSheet.To.Year, timeSheet.To.Month);
 }

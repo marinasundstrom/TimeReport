@@ -35,6 +35,7 @@ public class TimeSheetsController : ControllerBase
             .Include(x => x.User)
             .Include(x => x.Activities)
             .ThenInclude(x => x.Entries)
+            .ThenInclude(x => x.MonthGroup)
             .Include(x => x.Activities)
             .ThenInclude(x => x.Activity)
             .Include(x => x.Activities)
@@ -69,15 +70,24 @@ public class TimeSheetsController : ControllerBase
             .Take(pageSize)
             .ToListAsync();
 
+        var monthInfo = await context.MonthEntryGroups
+            .Where(x => x.Status == EntryStatus.Locked)
+            .ToArrayAsync();
+
         var results = new ItemsResult<TimeSheetDto>(
             timeSheets.Select(timeSheet =>
             {
                 var activities = timeSheet.Activities
                     .OrderBy(e => e.Created)
                     .Select(e => new TimeSheetActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description),
-                        e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description))));
+                        e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status))));
 
-                return new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted), activities);
+                var m = monthInfo
+                        .Where(x => x.User.Id == timeSheet.User.Id)
+                        .Where(x => x.Month >= timeSheet.From.Month || x.Month <= timeSheet.To.Month);
+
+                return new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted), activities,
+                    monthInfo.Select(x => new MonthInfoDto(x.Month, true )));
             }),
             totalItems);
 
@@ -92,6 +102,7 @@ public class TimeSheetsController : ControllerBase
             .Include(x => x.User)
             .Include(x => x.Activities)
             .ThenInclude(x => x.Entries)
+            .ThenInclude(x => x.MonthGroup)
             .Include(x => x.Activities)
             .ThenInclude(x => x.Activity)
             .Include(x => x.Activities)
@@ -106,10 +117,16 @@ public class TimeSheetsController : ControllerBase
         var activities = timeSheet.Activities
             .OrderBy(e => e.Created)
             .Select(e => new TimeSheetActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description),
-                e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description))));
+                e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status))));
 
-        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
-            activities);
+        var monthInfo = await context.MonthEntryGroups
+            .Where(x => x.User.Id == timeSheet.User.Id)
+            .Where(x => x.Month >= timeSheet.From.Month || x.Month <= timeSheet.To.Month)
+            .Where(x => x.Status == EntryStatus.Locked)
+            .ToArrayAsync();
+
+        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
+            activities, monthInfo.Select(x => new MonthInfoDto(x.Month, true)));
 
         return Ok(dto);
     }
@@ -122,6 +139,7 @@ public class TimeSheetsController : ControllerBase
             .Include(x => x.User)
             .Include(x => x.Activities)
             .ThenInclude(x => x.Entries)
+            .ThenInclude(x => x.MonthGroup)
             .Include(x => x.Activities)
             .ThenInclude(x => x.Activity)
             .ThenInclude(x => x.Project)
@@ -150,11 +168,15 @@ public class TimeSheetsController : ControllerBase
                 user = await context.Users.FirstOrDefaultAsync();
             }
 
+            var startDate = System.Globalization.ISOWeek.ToDateTime(year, week, DayOfWeek.Monday);
+
             timeSheet = new TimeSheet()
             {
                 Id = Guid.NewGuid().ToString(),
                 Year = year,
                 Week = week,
+                From = startDate,
+                To = startDate.AddDays(6),
                 User = user
             };
 
@@ -166,11 +188,17 @@ public class TimeSheetsController : ControllerBase
         var activities = timeSheet.Activities
             .OrderBy(e => e.Created)
             .Select(e => new TimeSheetActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description),
-                e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description))))
+                e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status)))) 
             .ToArray();
 
-        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
-            activities);
+        var monthInfo = await context.MonthEntryGroups
+            .Where(x => x.User.Id == timeSheet.User.Id)
+            .Where(x => x.Month >= timeSheet.From.Month || x.Month <= timeSheet.To.Month)
+            .Where(x => x.Status == EntryStatus.Locked)
+            .ToArrayAsync();
+
+        var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
+            activities, monthInfo.Select(x => new MonthInfoDto(x.Month, true)));
 
         return Ok(dto);
     }
@@ -317,6 +345,36 @@ public class TimeSheetsController : ControllerBase
                           statusCode: StatusCodes.Status403Forbidden);
         }
 
+        var group = await context.MonthEntryGroups
+            .FirstOrDefaultAsync(meg =>
+                meg.User.Id == timeSheet.User.Id
+                && meg.Year == dto.Date.Year
+                && meg.Month == dto.Date.Month);
+
+        if (group is null)
+        {
+            group = new MonthEntryGroup
+            {
+                Id = Guid.NewGuid().ToString(),
+                User = timeSheet.User,
+                Year = dto.Date.Year,
+                Month = dto.Date.Month,
+                Status = EntryStatus.Unlocked
+            };
+
+            context.MonthEntryGroups.Add(group);
+        }
+        else
+        {
+            if(group.Status == EntryStatus.Locked)
+            {
+                return Problem(
+                          title: "Month is locked",
+                          detail: $"Updating entries of a month that has been locked is not allowed.",
+                          statusCode: StatusCodes.Status403Forbidden);
+            }
+        }
+
         var date = DateOnly.FromDateTime(dto.Date);
 
         var existingEntryWithDate = timeSheet.Entries
@@ -406,11 +464,15 @@ public class TimeSheetsController : ControllerBase
 
         timeSheet.Entries.Add(entry);
 
+        entry.MonthGroup = group;
+
+        group.Entries.Add(entry);
+
         await context.SaveChangesAsync();
 
         var e = entry;
 
-        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description);
+        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status);
 
         return Ok(newDto);
     }
@@ -421,6 +483,8 @@ public class TimeSheetsController : ControllerBase
     public async Task<ActionResult<EntryDto>> UpdateEntry([FromRoute] string timeSheetId, [FromRoute] string entryId, UpdateEntryDto dto, CancellationToken cancellationToken)
     {
         var timeSheet = await context.TimeSheets
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.MonthGroup)
             .Include(x => x.Entries)
             .ThenInclude(x => x.Project)
             .Include(x => x.Entries)
@@ -449,6 +513,14 @@ public class TimeSheetsController : ControllerBase
         if (entry is null)
         {
             return NotFound();
+        }
+
+        if (entry.MonthGroup.Status == EntryStatus.Locked)
+        {
+            return Problem(
+                      title: "Month is locked",
+                      detail: $"Updating entries of a month that has been locked is not allowed.",
+                      statusCode: StatusCodes.Status403Forbidden);
         }
 
         entry.Hours = dto.Hours;
@@ -476,7 +548,7 @@ public class TimeSheetsController : ControllerBase
 
         var e = entry;
 
-        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description);
+        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status);
 
         return Ok(newDto);
     }
@@ -487,6 +559,8 @@ public class TimeSheetsController : ControllerBase
     public async Task<ActionResult<EntryDto>> UpdateEntryDetails([FromRoute] string timeSheetId, [FromRoute] string entryId, UpdateEntryDetailsDto dto, CancellationToken cancellationToken)
     {
         var timeSheet = await context.TimeSheets
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.MonthGroup)
             .Include(x => x.Entries)
             .ThenInclude(x => x.Project)
             .Include(x => x.Entries)
@@ -517,13 +591,21 @@ public class TimeSheetsController : ControllerBase
             return BadRequest();
         }
 
+        if (entry.MonthGroup.Status == EntryStatus.Locked)
+        {
+            return Problem(
+                      title: "Month is locked",
+                      detail: $"Updating entries of a month that has been locked is not allowed.",
+                      statusCode: StatusCodes.Status403Forbidden);
+        }
+
         entry.Description = dto.Description;
 
         await context.SaveChangesAsync();
 
         var e = entry;
 
-        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description);
+        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status);
 
         return Ok(newDto);
     }
@@ -561,14 +643,17 @@ public class TimeSheetsController : ControllerBase
 
         if (activity is null)
         {
-            // Activity not found
+            return Problem(
+                          title: "Activity not found",
+                          detail: $"No activity with Id {activityId} was found.",
+                          statusCode: StatusCodes.Status403Forbidden);
         }
 
         var entries = timeSheet.Entries.Where(e => e.Activity.Id == activityId);
 
         foreach (var entry in entries)
         {
-            context.Entries.Remove(entry);
+            context.Entries.Remove(entry); 
         }
 
         var timeSheetActivity = await context.TimeSheetActivities
@@ -579,6 +664,33 @@ public class TimeSheetsController : ControllerBase
             context.TimeSheetActivities.Remove(timeSheetActivity);
         }
 
+        await context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpPost("{timeSheetId}/CloseWeek")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> CloseWeek([FromRoute] string timeSheetId)
+    {
+        var timeSheet = await context.TimeSheets
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.Project)
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.Activity)
+            .Include(x => x.Entries)
+            .ThenInclude(x => x.Activity)
+            .ThenInclude(x => x.Project)
+            .AsSplitQuery()
+            .FirstAsync(x => x.Id == timeSheetId);
+
+        if (timeSheet is null)
+        {
+            return BadRequest();
+        }
+
+        timeSheet.Status = TimeSheetStatus.Closed;
         await context.SaveChangesAsync();
 
         return Ok();
@@ -607,6 +719,87 @@ public class TimeSheetsController : ControllerBase
 
         timeSheet.Status = (TimeSheetStatus)statusCode;
         await context.SaveChangesAsync();
+
+        return Ok();
+    }
+
+    [HttpPost("{timeSheetId}/LockMonth")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult> LockMonth([FromRoute] string timeSheetId)
+    {
+        var timeSheet = await context.TimeSheets
+            .Include(x => x.Entries)
+            .Include(x => x.User)
+            .AsSplitQuery()
+            .FirstAsync(x => x.Id == timeSheetId);
+
+        if (timeSheet is null)
+        {
+            return BadRequest();
+        }
+
+        var firstWeekDay = timeSheet.From;
+        var lastWeekDay = timeSheet.To;
+
+        int month = firstWeekDay.Month;
+
+        DateTime firstDate;
+        DateTime lastDate;
+
+        if (firstWeekDay.Month == lastWeekDay.Month)
+        {
+            int daysInMonth = DateTime.DaysInMonth(firstWeekDay.Month, month);
+
+            if(lastWeekDay.Month == daysInMonth)
+            {
+                firstDate = new DateTime(firstWeekDay.Year, firstWeekDay.Month, 1);
+                lastDate = lastWeekDay;
+            }
+            else
+            {
+                return Problem(
+                          title: "Failed to lock month",
+                          detail: $"Unable to lock month in this timesheet.",
+                          statusCode: StatusCodes.Status403Forbidden);
+            }
+        }
+        else
+        {
+            firstDate = new DateTime(firstWeekDay.Year, firstWeekDay.Month, 1);
+
+            int daysInMonth = DateTime.DaysInMonth(firstWeekDay.Month, month);
+            lastDate = new DateTime(firstWeekDay.Year, firstWeekDay.Month, daysInMonth);
+        }
+
+        var userId = timeSheet.User.Id;
+
+        var group = await context.MonthEntryGroups
+           .Include(meg => meg.Entries)
+           .FirstOrDefaultAsync(meg =>
+               meg.User.Id == userId
+               && meg.Year == lastDate.Date.Year
+               && meg.Month == lastDate.Date.Month);
+
+        if (group is not null)
+        {
+            if(group.Status == EntryStatus.Locked)
+            {
+                return Problem(
+                          title: "Unable to lock month",
+                          detail: $"Month is already locked.",
+                          statusCode: StatusCodes.Status403Forbidden);
+            }
+
+            group.Status = EntryStatus.Locked;
+
+            foreach (var entry in group.Entries)
+            {
+                entry.Status = EntryStatus.Locked;
+            }
+
+            await context.SaveChangesAsync();
+        }
 
         return Ok();
     }

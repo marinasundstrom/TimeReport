@@ -25,4 +25,6 @@ public class EntryModel
     public double? Hours { get; set; }
 
     public string? Description { get; set; }
+
+    public EntryStatusDto Status { get; set; }
 }

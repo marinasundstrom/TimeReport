@@ -11,11 +11,13 @@ public record class ActivityDto(string Id, string Name, string? Description, dec
 
 public record class ExpenseDto(string Id, DateTime Date, decimal Amount, string? Description, string? Attachment, ProjectDto Project);
 
-public record class TimeSheetDto(string Id, int Year, int Week, TimeSheetStatusDto Status, UserDto User, IEnumerable<TimeSheetActivityDto> Activities);
+public record class TimeSheetDto(string Id, int Year, int Week, DateTime From, DateTime To, TimeSheetStatusDto Status, UserDto User, IEnumerable<TimeSheetActivityDto> Activities, IEnumerable<MonthInfoDto> infos);
 
 public record class TimeSheetActivityDto(string Id, string Name, string? Description, ProjectDto Project, IEnumerable<TimeSheetEntryDto> Entries);
 
-public record class TimeSheetEntryDto(string Id, DateTime Date, double? Hours, string? Description);
+public record class MonthInfoDto(int Month, bool IsLocked);
+
+public record class TimeSheetEntryDto(string Id, DateTime Date, double? Hours, string? Description, EntryStatusDto Status);
 
 [JsonConverter(typeof(StringEnumConverter))]
 public enum TimeSheetStatusDto
@@ -26,7 +28,14 @@ public enum TimeSheetStatusDto
     Disapproved
 }
 
-public record class EntryDto(string Id, ProjectDto Project, ActivityDto Activity, DateTime Date, double? Hours, string? Description);
+public record class EntryDto(string Id, ProjectDto Project, ActivityDto Activity, DateTime Date, double? Hours, string? Description, EntryStatusDto Status);
+
+[JsonConverter(typeof(StringEnumConverter))]
+public enum EntryStatusDto
+{
+    Unlocked,
+    Locked
+}
 
 public record class CreateEntryDto(string? Id, string? ProjectId, string? ActivityId, DateTime Date, double? Hours, string? Description);
 
