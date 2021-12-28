@@ -156,6 +156,9 @@ public class ProjectsController : ControllerBase
              .Where(e => e.Activity.HourlyRate.GetValueOrDefault() < 0)
              .SumAsync(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
 
+        expenses -= await context.Expenses
+             .SumAsync(e => e.Amount);
+
         return new StatisticsSummary(new StatisticsSummaryEntry[]
         {
             new ("Projects", totalProjects),
@@ -226,6 +229,7 @@ public class ProjectsController : ControllerBase
             .ThenInclude(x => x.User)
             .Include(p => p.Entries)
             .ThenInclude(x => x.Activity)
+            .Include(p => p.Expenses)
             .AsSplitQuery()
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.Id == projectId);
@@ -245,6 +249,9 @@ public class ProjectsController : ControllerBase
         var expenses = project.Entries
              .Where(e => e.Activity.HourlyRate.GetValueOrDefault() < 0)
              .Sum(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
+
+        expenses -= project.Expenses
+             .Sum(e => e.Amount);
 
         var totalUsers = project.Entries
             .Select(e => e.User)
