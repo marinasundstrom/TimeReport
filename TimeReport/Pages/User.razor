@@ -5,7 +5,9 @@
 
 @if (user is not null)
 {
-    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@user.FirstName @user.LastName</MudText>
+    <PageTitle>@user.GetDisplayName() - Time Report</PageTitle>
+
+    <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">@user.GetDisplayName()</MudText>
 
     <MudText Typo="Typo.h4" Align="Align.Center" GutterBottom="true" Class="mt-6">Projects</MudText>
 

@@ -13,6 +13,8 @@
 @inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 
+<PageTitle>Timesheet - Time Report</PageTitle>
+
 @if (ActivitiesModels is not null && Year is not null && Week is not null)
 {
     <MudText Typo="Typo.h3" Align="Align.Center" GutterBottom="true">Week @Week - @Year</MudText>
