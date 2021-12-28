@@ -87,7 +87,7 @@ public class TimeSheetsController : ControllerBase
                         .Where(x => x.Month >= timeSheet.From.Month || x.Month <= timeSheet.To.Month);
 
                 return new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted), activities,
-                    monthInfo.Select(x => new MonthInfoDto(x.Month, true )));
+                    monthInfo.Select(x => new MonthInfoDto(x.Month, true)));
             }),
             totalItems);
 
@@ -188,7 +188,7 @@ public class TimeSheetsController : ControllerBase
         var activities = timeSheet.Activities
             .OrderBy(e => e.Created)
             .Select(e => new TimeSheetActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description),
-                e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status)))) 
+                e.Entries.OrderBy(e => e.Date).Select(e => new TimeSheetEntryDto(e.Id, e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status))))
             .ToArray();
 
         var monthInfo = await context.MonthEntryGroups
@@ -366,7 +366,7 @@ public class TimeSheetsController : ControllerBase
         }
         else
         {
-            if(group.Status == EntryStatus.Locked)
+            if (group.Status == EntryStatus.Locked)
             {
                 return Problem(
                           title: "Month is locked",
@@ -651,17 +651,21 @@ public class TimeSheetsController : ControllerBase
 
         var entries = timeSheet.Entries.Where(e => e.Activity.Id == activityId);
 
-        foreach (var entry in entries)
+        foreach (var entry in entries.Where(e => e.Status == EntryStatus.Unlocked))
         {
-            context.Entries.Remove(entry); 
+            context.Entries.Remove(entry);
         }
 
-        var timeSheetActivity = await context.TimeSheetActivities
-            .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id);
 
-        if (timeSheetActivity is not null)
+        if (entries.All(e => e.Status == EntryStatus.Unlocked))
         {
-            context.TimeSheetActivities.Remove(timeSheetActivity);
+            var timeSheetActivity = await context.TimeSheetActivities
+                .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id);
+
+            if (timeSheetActivity is not null)
+            {
+                context.TimeSheetActivities.Remove(timeSheetActivity);
+            }
         }
 
         await context.SaveChangesAsync();
@@ -751,7 +755,7 @@ public class TimeSheetsController : ControllerBase
         {
             int daysInMonth = DateTime.DaysInMonth(firstWeekDay.Month, month);
 
-            if(lastWeekDay.Month == daysInMonth)
+            if (lastWeekDay.Month == daysInMonth)
             {
                 firstDate = new DateTime(firstWeekDay.Year, firstWeekDay.Month, 1);
                 lastDate = lastWeekDay;
@@ -783,7 +787,7 @@ public class TimeSheetsController : ControllerBase
 
         if (group is not null)
         {
-            if(group.Status == EntryStatus.Locked)
+            if (group.Status == EntryStatus.Locked)
             {
                 return Problem(
                           title: "Unable to lock month",
