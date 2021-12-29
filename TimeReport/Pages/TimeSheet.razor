@@ -339,9 +339,7 @@
         User = user;
         UserId = user.Id;
 
-        NavigationManager.NavigateTo($"/timesheet/{Year}/{Week}?userId={user.Id}", replace: true);
-
-        await LoadTimeSheet();
+        NavigationManager.NavigateTo($"/timesheet/{Year}/{Week}?userId={user.Id}", replace: true);;
     }
 
     private TableGroupDefinition<ActivityModel> _groupDefinition = new()
@@ -486,7 +484,7 @@
 
     private async Task<IEnumerable<UserDto>> Search1(string value)
     {
-        var page = await UsersClient.GetUsersAsync(0, 10, value, null, null); 
+        var page = await UsersClient.GetUsersAsync(0, 10, value, null, null);
 
         return page.Items;
     }
