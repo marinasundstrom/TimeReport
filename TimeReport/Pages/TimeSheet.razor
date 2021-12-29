@@ -245,7 +245,7 @@
 
                 if (entry is null)
                 {
-                    var value = timeSheet?.Infos.Any(x => dayDate.Month == x.Month);
+                    var value = timeSheet?.Months.Any(x => dayDate.Month == x.Month);
 
                     entryModel = new EntryModel
                     {
@@ -301,7 +301,7 @@
 
         foreach (var entryModel in obj.Entries)
         {
-            var value = timeSheet?.Infos.Any(x => entryModel.Date.Month == x.Month);
+            var value = timeSheet?.Months.Any(x => entryModel.Date.Month == x.Month);
 
             entryModel.Status = value.GetValueOrDefault() ? EntryStatusDto.Locked : EntryStatusDto.Unlocked;
         }
@@ -534,7 +534,7 @@
             {
                 foreach (var entryModel in activity.Entries)
                 {
-                    var value = timeSheet?.Infos.Any(x => entryModel.Date.Month == x.Month);
+                    var value = timeSheet?.Months.Any(x => entryModel.Date.Month == x.Month);
 
                     entryModel.Status = value.GetValueOrDefault() ? EntryStatusDto.Locked : EntryStatusDto.Unlocked;
                 }

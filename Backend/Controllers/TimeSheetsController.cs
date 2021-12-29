@@ -84,10 +84,10 @@ public class TimeSheetsController : ControllerBase
 
                 var m = monthInfo
                         .Where(x => x.User.Id == timeSheet.User.Id)
-                        .Where(x => x.Month >= timeSheet.From.Month || x.Month <= timeSheet.To.Month);
+                        .Where(x => x.Month == timeSheet.From.Month || x.Month == timeSheet.To.Month);
 
                 return new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted), activities,
-                    monthInfo.Select(x => new MonthInfoDto(x.Month, true)));
+                    monthInfo.Select(x => new MonthInfoDto(x.Month, x.Status == EntryStatus.Locked)));
             }),
             totalItems);
 
@@ -121,12 +121,11 @@ public class TimeSheetsController : ControllerBase
 
         var monthInfo = await context.MonthEntryGroups
             .Where(x => x.User.Id == timeSheet.User.Id)
-            .Where(x => x.Month >= timeSheet.From.Month || x.Month <= timeSheet.To.Month)
-            .Where(x => x.Status == EntryStatus.Locked)
+            .Where(x => x.Month == timeSheet.From.Month || x.Month == timeSheet.To.Month)
             .ToArrayAsync();
 
         var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
-            activities, monthInfo.Select(x => new MonthInfoDto(x.Month, true)));
+            activities, monthInfo.Select(x => new MonthInfoDto(x.Month, x.Status == EntryStatus.Locked)));
 
         return Ok(dto);
     }
@@ -193,12 +192,11 @@ public class TimeSheetsController : ControllerBase
 
         var monthInfo = await context.MonthEntryGroups
             .Where(x => x.User.Id == timeSheet.User.Id)
-            .Where(x => x.Month >= timeSheet.From.Month || x.Month <= timeSheet.To.Month)
-            .Where(x => x.Status == EntryStatus.Locked)
+            .Where(x => x.Month == timeSheet.From.Month || x.Month == timeSheet.To.Month)
             .ToArrayAsync();
 
         var dto = new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
-            activities, monthInfo.Select(x => new MonthInfoDto(x.Month, true)));
+            activities, monthInfo.Select(x => new MonthInfoDto(x.Month, x.Status == EntryStatus.Locked)));
 
         return Ok(dto);
     }

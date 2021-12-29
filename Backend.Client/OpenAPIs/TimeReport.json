@@ -2566,7 +2566,7 @@
               "$ref": "#/components/schemas/TimeSheetActivityDto"
             }
           },
-          "infos": {
+          "months": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/MonthInfoDto"
