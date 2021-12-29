@@ -318,7 +318,7 @@
         {
             await TimeSheetsClient.DeleteActvityEntriesAsync(timeSheet.Id, activityLine.Activity.Id);
 
-            ActivitiesModels.Remove(activityLine);
+            await LoadTimeSheet();
         }
         catch (ApiException<ProblemDetails> e)
         {
