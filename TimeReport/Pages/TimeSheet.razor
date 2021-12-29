@@ -211,6 +211,7 @@
             timeSheet = await TimeSheetsClient.GetTimeSheetForWeekAsync(Year.GetValueOrDefault(), Week.GetValueOrDefault(), UserId ?? User.Id);
 
             User = timeSheet.User;
+            UserId = User.Id;
         }
         catch (ApiException<ProblemDetails> e)
         {
@@ -389,45 +390,49 @@
         var oldValue = entry.Hours;
         entry.Hours = value;
 
-        try
+        Task.Run(async () =>
         {
-
-            if (entry.Id is null)
+            try
             {
-                var a = activity.Activity;
-
-                var result = await TimeSheetsClient.CreateEntryAsync(timeSheet.Id, new CreateEntryDto
+                if (entry.Id is null)
                 {
-                    ProjectId = a.Project.Id,
-                    ActivityId = a.Id,
-                    Date = entry.Date,
-                    Hours = value,
-                    Description = entry.Description
-                });
+                    var a = activity.Activity;
 
-                entry.Id = result.Id;
+                    var result = await TimeSheetsClient.CreateEntryAsync(timeSheet.Id, new CreateEntryDto
+                    {
+                        ProjectId = a.Project.Id,
+                        ActivityId = a.Id,
+                        Date = entry.Date,
+                        Hours = value,
+                        Description = entry.Description
+                    });
+
+                    entry.Id = result.Id;
+                }
+                else
+                {
+                    await TimeSheetsClient.UpdateEntryAsync(timeSheet.Id, entry.Id, new UpdateEntryDto
+                    {
+                        Hours = value,
+                        Description = entry.Description
+                    });
+                }
             }
-            else
+            catch (ApiException<ProblemDetails> exc)
             {
-                await TimeSheetsClient.UpdateEntryAsync(timeSheet.Id, entry.Id, new UpdateEntryDto
-                {
-                    Hours = value,
-                    Description = entry.Description
-                });
+                entry.Hours = oldValue;
+
+                Snackbar.Add(exc.Result.Detail, Severity.Error);
             }
-        }
-        catch (ApiException<ProblemDetails> exc)
-        {
-            entry.Hours = oldValue;
+            catch
+            {
+                entry.Hours = oldValue;
 
-            Snackbar.Add(exc.Result.Detail, Severity.Error);
-        }
-        catch
-        {
-            entry.Hours = oldValue;
+                Snackbar.Add("Failed to update hours", Severity.Error);
+            }
 
-            Snackbar.Add("Failed to update hours", Severity.Error);
-        }
+            StateHasChanged();
+        });
     }
 
     async Task OnDescriptionChanged(string? value, ActivityModel activity, EntryModel entry)
@@ -435,48 +440,53 @@
         var oldValue = entry.Description;
         entry.Description = value;
 
-        try
+        Task.Run(async () =>
         {
-            if (entry.Id is null)
+            try
             {
-                var a = activity.Activity;
-
-                var result = await TimeSheetsClient.CreateEntryAsync(timeSheet.Id, new CreateEntryDto
+                if (entry.Id is null)
                 {
-                    ProjectId = a.Project.Id,
-                    ActivityId = a.Id,
-                    Date = entry.Date,
-                    Hours = null,
-                    Description = value
-                });
+                    var a = activity.Activity;
 
-                entry.Id = result.Id;
+                    var result = await TimeSheetsClient.CreateEntryAsync(timeSheet.Id, new CreateEntryDto
+                    {
+                        ProjectId = a.Project.Id,
+                        ActivityId = a.Id,
+                        Date = entry.Date,
+                        Hours = null,
+                        Description = value
+                    });
+
+                    entry.Id = result.Id;
+                }
+                else
+                {
+                    await TimeSheetsClient.UpdateEntryDetailsAsync(timeSheet.Id, entry.Id, new UpdateEntryDetailsDto
+                    {
+                        Description = value
+                    });
+                }
             }
-            else
+            catch (ApiException<ProblemDetails> e)
             {
-                await TimeSheetsClient.UpdateEntryDetailsAsync(timeSheet.Id, entry.Id, new UpdateEntryDetailsDto
-                {
-                    Description = value
-                });
+                Snackbar.Add(e.Result.Detail, Severity.Error);
+                isLoading = false;
+                return;
             }
-        }
-        catch (ApiException<ProblemDetails> e)
-        {
-            Snackbar.Add(e.Result.Detail, Severity.Error);
-            isLoading = false;
-            return;
-        }
-        catch
-        {
-            entry.Description = oldValue;
+            catch
+            {
+                entry.Description = oldValue;
 
-            Snackbar.Add("Failed to update description", Severity.Error);
-        }
+                Snackbar.Add("Failed to update description", Severity.Error);
+            }
+
+            StateHasChanged();
+        });
     }
 
     private async Task<IEnumerable<UserDto>> Search1(string value)
     {
-        var page = await UsersClient.GetUsersAsync(0, 10, value, null, null);
+        var page = await UsersClient.GetUsersAsync(0, 10, value, null, null); 
 
         return page.Items;
     }
@@ -531,7 +541,7 @@
             }
             */
 
-            StateHasChanged(); 
+            StateHasChanged();
         }
         catch (ApiException<ProblemDetails> e)
         {
@@ -547,5 +557,5 @@
 
     bool IsWeekend(DateTime date) => date.DayOfWeek == DayOfWeek.Saturday || date.DayOfWeek == DayOfWeek.Sunday;
 
-    bool CanLockMonth => ActivitiesModels.SelectMany(a => a.Entries).Any() && ActivitiesModels.SelectMany(a => a.Entries).All(e => e.Status == EntryStatusDto.Unlocked) && timeSheet.From.Month != timeSheet.To.Month || timeSheet != null &&ISOWeek.ToDateTime(Year.GetValueOrDefault(), Week.GetValueOrDefault(), DayOfWeek.Sunday).Day == DateTime.DaysInMonth(timeSheet.To.Year, timeSheet.To.Month);
+    bool CanLockMonth => ActivitiesModels.SelectMany(a => a.Entries).Any() && ActivitiesModels.SelectMany(a => a.Entries).All(e => e.Status == EntryStatusDto.Unlocked) && timeSheet.From.Month != timeSheet.To.Month || timeSheet != null && ISOWeek.ToDateTime(Year.GetValueOrDefault(), Week.GetValueOrDefault(), DayOfWeek.Sunday).Day == DateTime.DaysInMonth(timeSheet.To.Year, timeSheet.To.Month);
 }
