@@ -12,4 +12,3 @@ public abstract class AuditableEntity
 
     public string? LastModifiedBy { get; set; }
 }
-

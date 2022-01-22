@@ -10,4 +10,3 @@ public static class ExpensesHelpers
         return name is null ? null : $"http://127.0.0.1:10000/devstoreaccount1/attachments/{name}";
     }
 }
-

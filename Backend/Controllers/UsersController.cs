@@ -10,7 +10,6 @@ using TimeReport.Application.Projects;
 using TimeReport.Application.Users;
 using TimeReport.Application.Users.Commands;
 using TimeReport.Application.Users.Queries;
-using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 

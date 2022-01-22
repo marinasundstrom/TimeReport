@@ -11,7 +11,6 @@ using TimeReport.Application.Common.Models;
 using TimeReport.Application.Expenses;
 using TimeReport.Application.Expenses.Commands;
 using TimeReport.Application.Expenses.Queries;
-using TimeReport.Infrastructure;
 
 using static TimeReport.Application.Expenses.ExpensesHelpers;
 

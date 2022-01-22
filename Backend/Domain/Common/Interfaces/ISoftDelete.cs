@@ -6,4 +6,3 @@ public interface ISoftDelete
 
     string? DeletedBy { get; set; }
 }
-

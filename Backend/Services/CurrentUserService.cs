@@ -17,4 +17,3 @@ public class CurrentUserService : ICurrentUserService
 
     public string UserId => _httpContextAccessor.HttpContext?.User?.FindFirstValue(ClaimTypes.NameIdentifier) ?? "N/A";
 }
-

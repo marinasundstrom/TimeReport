@@ -2,14 +2,12 @@
 using MediatR;
 
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 using TimeReport.Application.Activities;
 using TimeReport.Application.Activities.Commands;
 using TimeReport.Application.Activities.Queries;
 using TimeReport.Application.Common.Interfaces;
 using TimeReport.Application.Common.Models;
-using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 

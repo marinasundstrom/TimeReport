@@ -12,11 +12,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 
 using TimeReport;
-using TimeReport.Infrastructure;
-using TimeReport.Hubs;
-using TimeReport.Services;
 using TimeReport.Application.Common.Interfaces;
+using TimeReport.Hubs;
+using TimeReport.Infrastructure;
 using TimeReport.Infrastructure.Persistence;
+using TimeReport.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -94,11 +94,11 @@ app.MapGet("/info", () =>
 .WithName("GetInfo")
 .WithTags("Info")
 .Produces<string>();
- 
+
 //await app.SeedAsync();
 
 app.MapControllers();
 app.MapHub<ItemsHub>("/hubs/items");
-app.MapFallbackToFile("index.html"); 
+app.MapFallbackToFile("index.html");
 
 app.Run();

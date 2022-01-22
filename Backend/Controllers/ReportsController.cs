@@ -35,7 +35,7 @@ public class ReportsController : ControllerBase
             .Where(p => p.Date >= startDate2 && p.Date <= endDate2)
             .AsSplitQuery();
 
-        if(userId is not null)
+        if (userId is not null)
         {
             query = query.Where(x => x.TimeSheet.User.Id == userId);
         }
@@ -46,20 +46,20 @@ public class ReportsController : ControllerBase
 
         using (var package = new ExcelPackage())
         {
-            var worksheet = package.Workbook.Worksheets.Add("Projects"); 
+            var worksheet = package.Workbook.Worksheets.Add("Projects");
 
             var projectGroups = entries.GroupBy(x => x.Project);
 
             foreach (var project in projectGroups)
             {
                 worksheet.Cells[row++, 1]
-                      .LoadFromCollection( new[] { new { Project = project.Key.Name } });
+                      .LoadFromCollection(new[] { new { Project = project.Key.Name } });
 
                 int headerRow = row - 1;
 
                 var activityGroups = project.GroupBy(x => x.Activity);
 
-                foreach (var activityGroup in activityGroups)       
+                foreach (var activityGroup in activityGroups)
                 {
                     var data = activityGroup
                         .OrderBy(e => e.Date)

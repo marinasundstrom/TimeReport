@@ -1,16 +1,7 @@
-﻿using System;
-
-using Azure.Storage.Blobs;
-
-using MediatR;
-
+﻿
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
-
-using TimeReport.Application;
 using TimeReport.Application.Activities;
 using TimeReport.Application.Common.Interfaces;
 using TimeReport.Application.Common.Models;
@@ -19,7 +10,6 @@ using TimeReport.Application.TimeSheets;
 using TimeReport.Application.Users;
 using TimeReport.Domain.Entities;
 using TimeReport.Dtos;
-using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 

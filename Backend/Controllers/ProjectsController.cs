@@ -12,7 +12,6 @@ using TimeReport.Application.Projects.Queries;
 using TimeReport.Application.Users;
 using TimeReport.Domain.Entities;
 using TimeReport.Dtos;
-using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 

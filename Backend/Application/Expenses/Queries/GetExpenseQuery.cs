@@ -38,7 +38,7 @@ public class GetExpenseQuery : IRequest<ExpenseDto>
                .AsSplitQuery()
                .FirstOrDefaultAsync(x => x.Id == request.Id);
 
-            if(expense is null)
+            if (expense is null)
             {
                 throw new Exception();
             }
