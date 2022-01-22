@@ -1,7 +1,10 @@
 ﻿
+using MediatR;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Users;
 using TimeReport.Data;
 
 namespace TimeReport.Controllers;
@@ -10,131 +13,83 @@ namespace TimeReport.Controllers;
 [Route("api/[controller]")]
 public class UsersController : ControllerBase
 {
+    private readonly IMediator _mediator;
     private readonly TimeReportContext context;
 
-    public UsersController(TimeReportContext context)
+    public UsersController(IMediator mediator, TimeReportContext context)
     {
+        _mediator = mediator;
         this.context = context;
     }
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<UserDto>>> GetUsers(int page = 0, int pageSize = 10, string? searchString = null, string? sortBy = null, SortDirection? sortDirection = null)
+    public async Task<ActionResult<ItemsResult<UserDto>>> GetUsers(int page = 0, int pageSize = 10, string? searchString = null, string? sortBy = null, TimeReport.SortDirection? sortDirection = null)
     {
-        var query = context.Users
-            .OrderBy(p => p.Created)
-            .Skip(pageSize * page)
-            .Take(pageSize)
-            .AsNoTracking()
-            .AsSplitQuery();
+        return Ok(await _mediator.Send(new GetUsersQuery(page, pageSize, searchString, sortBy, sortDirection)));
 
-        if (searchString is not null)
-        {
-            query = query.Where(p =>
-            p.FirstName.ToLower().Contains(searchString.ToLower())
-            || p.LastName.ToLower().Contains(searchString.ToLower())
-            || ((p.DisplayName ?? "").ToLower().Contains(searchString.ToLower()))
-            || p.SSN.ToLower().Contains(searchString.ToLower())
-            || p.Email.ToLower().Contains(searchString.ToLower()));
-        }
-
-        var totalItems = await query.CountAsync();
-
-        if (sortBy is not null)
-        {
-            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
-        }
-
-        var users = await query.ToListAsync();
-
-        var dtos = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted));
-
-        return Ok(new ItemsResult<UserDto>(dtos, totalItems));
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<UserDto>> GetUser(string id)
     {
-        var user = await context.Users
-            .AsNoTracking()
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var user = await _mediator.Send(new GetUserQuery(id));
 
         if (user is null)
         {
             return NotFound();
         }
 
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted);
-        return Ok(dto);
+        return Ok(user);
     }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<UserDto>> CreateUser(CreateUserDto createUserDto)
     {
-        var user = new User
+        try
         {
-            Id = Guid.NewGuid().ToString(),
-            FirstName = createUserDto.FirstName,
-            LastName = createUserDto.LastName,
-            DisplayName = createUserDto.DisplayName,
-            SSN = createUserDto.SSN,
-            Email = createUserDto.Email
-        };
+            var user = await _mediator.Send(new CreateUserCommand(createUserDto.FirstName, createUserDto.LastName, createUserDto.DisplayName, createUserDto.SSN, createUserDto.Email));
 
-        context.Users.Add(user);
-
-        await context.SaveChangesAsync();
-
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted);
-        return Ok(dto);
+            return Ok(user);
+        }
+        catch (Exception)
+        {
+            return NotFound();
+        }
     }
 
     [HttpPut("{id}/Details")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<UserDto>> UpdateUser(string id, UpdateUserDetailsDto updateUserDetailsDto)
     {
-        var user = await context.Users
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        try
+        {
+            var user = await _mediator.Send(new UpdateUserCommand(id, updateUserDetailsDto.FirstName, updateUserDetailsDto.LastName, updateUserDetailsDto.DisplayName, updateUserDetailsDto.SSN, updateUserDetailsDto.Email));
 
-        if (user is null)
+            return Ok(user);
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        user.FirstName = updateUserDetailsDto.FirstName;
-        user.LastName = updateUserDetailsDto.LastName;
-        user.DisplayName = updateUserDetailsDto.DisplayName;
-        user.SSN = updateUserDetailsDto.SSN;
-        user.Email = updateUserDetailsDto.Email;
-
-        await context.SaveChangesAsync();
-
-        var dto = new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted);
-        return Ok(dto);
     }
 
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> DeleteUser(string id)
     {
-        var user = await context.Users
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        try
+        {
+            await _mediator.Send(new DeleteUserCommand(id));
 
-        if (user is null)
+            return Ok();
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        context.Users.Remove(user);
-
-        await context.SaveChangesAsync();
-
-        return Ok();
     }
 
 
@@ -230,36 +185,14 @@ public class UsersController : ControllerBase
     [HttpGet("{id}/Statistics/Summary")]
     public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id)
     {
-        var user = await context.Users
-            .AsNoTracking()
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
-
-        if (user is null)
+        try
+        {
+            return Ok(await _mediator.Send(new GetUserStatisticsSummaryQuery(id)));
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        var entries = await context.Entries
-            .Include(x => x.Project)
-            .Where(x => x.User.Id == id)
-            .AsSplitQuery()
-            .AsNoTracking()
-            .ToArrayAsync();
-
-        var totalHours = entries
-            .Sum(p => p.Hours.GetValueOrDefault());
-
-        var totalProjects = entries
-            .Select(p => p.Project)
-            .DistinctBy(p => p.Id)
-            .Count();
-
-        return new StatisticsSummary(new StatisticsSummaryEntry[]
-        {
-            new ("Projects", totalProjects),
-            new ("Hours", totalHours)
-        });
     }
 }
 

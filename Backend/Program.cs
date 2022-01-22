@@ -28,6 +28,8 @@ services
 
 services.AddHttpContextAccessor();
 
+services.AddMediatR(typeof(Program));
+
 services.AddScoped<ICurrentUserService, CurrentUserService>();
 
 CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("sv-SE");

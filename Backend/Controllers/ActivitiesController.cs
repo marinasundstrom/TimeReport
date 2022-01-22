@@ -1,7 +1,10 @@
 ﻿
+using MediatR;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Activities;
 using TimeReport.Data;
 
 namespace TimeReport.Controllers;
@@ -10,172 +13,98 @@ namespace TimeReport.Controllers;
 [Route("api/[controller]")]
 public class ActivitiesController : ControllerBase
 {
+    private readonly IMediator _mediator;
     private readonly TimeReportContext context;
 
-    public ActivitiesController(TimeReportContext context)
+    public ActivitiesController(IMediator mediator, TimeReportContext context)
     {
+        _mediator = mediator;
         this.context = context;
     }
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, SortDirection? sortDirection = null)
+    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, TimeReport.SortDirection? sortDirection = null)
     {
-        var query = context.Activities
-            .Include(x => x.Project)
-            .OrderBy(p => p.Created)
-            .AsNoTracking()
-            .AsSplitQuery();
-
-        if (projectId is not null)
-        {
-            query = query.Where(activity => activity.Project.Id == projectId);
-        }
-
-        if (searchString is not null)
-        {
-            query = query.Where(activity => activity.Name.ToLower().Contains(searchString.ToLower()));
-        }
-
-        var totalItems = await query.CountAsync();
-
-        if (sortBy is not null)
-        {
-            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
-        }
-
-        var activities = await query
-            .Skip(pageSize * page)
-            .Take(pageSize)   
-            .ToListAsync();
-
-        var dtos = activities.Select(activity => new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description)));
-        
-        return Ok(new ItemsResult<ActivityDto>(dtos, totalItems));
+        return Ok(await _mediator.Send(new GetActivitiesQuery(page, pageSize, projectId, searchString, sortBy, sortDirection)));
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ActivityDto>> GetActivity(string id)
     {
-        var activity = await context.Activities
-            .Include(x => x.Project)
-            .AsNoTracking()
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var activity = await _mediator.Send(new GetActivityQuery(id));
 
         if (activity is null)
         {
             return NotFound();
         }
 
-        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
-        return Ok(dto);
+        return Ok(activity);
     }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ActivityDto>> CreateActivity(string projectId, CreateActivityDto createActivityDto)
     {
-        var project = await context.Projects
-           .AsSplitQuery()
-           .FirstOrDefaultAsync(x => x.Id == projectId);
+        try
+        {
+            var activity = await _mediator.Send(new CreateActivityCommand(projectId, createActivityDto.Name, createActivityDto.Description, createActivityDto.HourlyRate));
 
-        if (project is null)
+            return Ok(activity);
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        var activity = new Activity
-        {
-            Id = Guid.NewGuid().ToString(),
-            Name = createActivityDto.Name,
-            Description = createActivityDto.Description,
-            Project = project,
-            HourlyRate = createActivityDto.HourlyRate
-        };
-
-        context.Activities.Add(activity);
-
-        await context.SaveChangesAsync();
-
-        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
-        return Ok(dto);
     }
 
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ActivityDto>> UpdateActivity(string id, UpdateActivityDto updateActivityDto)
     {
-        var activity = await context.Activities
-            .Include(x => x.Project)
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        try
+        {
+            var activity = await _mediator.Send(new UpdateActivityCommand(id, updateActivityDto.Name, updateActivityDto.Description, updateActivityDto.HourlyRate));
 
-        if (activity is null)
+            return Ok(activity);
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        activity.Name = updateActivityDto.Name;
-        activity.Description = updateActivityDto.Description;
-        activity.HourlyRate = updateActivityDto.HourlyRate;
-
-        await context.SaveChangesAsync();
-
-        var dto = new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
-        return Ok(dto);
     }
 
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> DeleteActivity(string id)
     {
-        var activity = await context.Activities
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        try
+        {
+            var activity = await _mediator.Send(new DeleteActivityCommand(id));
 
-        if (activity is null)
+            return Ok();
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        context.Activities.Remove(activity);
-
-        await context.SaveChangesAsync();
-
-        return Ok();
     }
 
 
     [HttpGet("{id}/Statistics/Summary")]
     public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id)
     {
-        var activity = await context.Activities
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.User)
-            .AsSplitQuery()
-            .AsNoTracking()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        try
+        {
+            var statistics = await _mediator.Send(new GetActivityStatisticsSummaryQuery(id));
 
-        if (activity is null)
+            return Ok(_mediator.Send(new GetActivityStatisticsSummaryQuery(id)));
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        var totalHours = activity.Entries
-            .Sum(p => p.Hours.GetValueOrDefault());
-
-        var totalUsers = activity.Entries
-            .Select(p => p.User)
-            .DistinctBy(p => p.Id)
-            .Count();
-
-        return new StatisticsSummary(new StatisticsSummaryEntry[]
-        {
-            new ("Participants", totalUsers),
-            new ("Hours", totalHours)
-        });
     }
 }
 

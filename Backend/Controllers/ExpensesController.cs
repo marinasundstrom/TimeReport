@@ -1,10 +1,15 @@
 ﻿
 using Azure.Storage.Blobs;
 
+using MediatR;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Expenses;
 using TimeReport.Data;
+
+using static TimeReport.Application.Expenses.ExpensesHelpers;
 
 namespace TimeReport.Controllers;
 
@@ -12,100 +17,52 @@ namespace TimeReport.Controllers;
 [Route("api/[controller]")]
 public class ExpensesController : ControllerBase
 {
+    private readonly IMediator _mediator;
     private readonly TimeReportContext context;
     private readonly BlobServiceClient blobServiceClient;
 
-    public ExpensesController(TimeReportContext context, BlobServiceClient blobServiceClient)
+    public ExpensesController(IMediator mediator, TimeReportContext context, BlobServiceClient blobServiceClient)
     {
+        _mediator = mediator;
         this.context = context;
         this.blobServiceClient = blobServiceClient;
     }
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ExpenseDto>>> GetExpenses(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, SortDirection? sortDirection = null)
+    public async Task<ActionResult<ItemsResult<ExpenseDto>>> GetExpenses(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, TimeReport.SortDirection? sortDirection = null)
     {
-        var query = context.Expenses
-            .Include(x => x.Project)
-            .OrderBy(p => p.Created)
-            .AsNoTracking()
-            .AsSplitQuery();
-
-        if (projectId is not null)
-        {
-            query = query.Where(expense => expense.Project.Id == projectId);
-        }
-
-        if (searchString is not null)
-        {
-            query = query.Where(expense => expense.Description.ToLower().Contains(searchString.ToLower()));
-        }
-
-        var totalItems = await query.CountAsync();
-
-        if (sortBy is not null)
-        {
-            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
-        }
-
-        var expenses = await query
-            .Skip(pageSize * page)
-            .Take(pageSize)   
-            .ToListAsync();
-
-        var dtos = expenses.Select(expense => new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description)));
-        
-        return Ok(new ItemsResult<ExpenseDto>(dtos, totalItems));
+        return Ok(await _mediator.Send(new GetExpensesQuery(page, pageSize, projectId, searchString, sortBy, sortDirection)));
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ExpenseDto>> GetExpense(string id)
     {
-        var expense = await context.Expenses
-            .Include(x => x.Project)
-            .AsNoTracking()
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        var expense = await _mediator.Send(new GetExpenseQuery(id));
 
         if (expense is null)
         {
             return NotFound();
         }
 
-        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
-        return Ok(dto);
+        return Ok(expense);
     }
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ExpenseDto>> CreateExpense(string projectId, CreateExpenseDto createExpenseDto)
     {
-        var project = await context.Projects
-           .AsSplitQuery()
-           .FirstOrDefaultAsync(x => x.Id == projectId);
+        try
+        {
+            var activity = await _mediator.Send(new CreateExpenseCommand(projectId, createExpenseDto.Date, createExpenseDto.Amount, createExpenseDto.Description));
 
-        if (project is null)
+            return Ok(activity);
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        var expense = new Expense
-        {
-            Id = Guid.NewGuid().ToString(),
-            Type = ExpenseType.Purchase,
-            Date = DateOnly.FromDateTime(createExpenseDto.Date),
-            Amount = createExpenseDto.Amount,
-            Description = createExpenseDto.Description,
-            Project = project
-        };
-
-        context.Expenses.Add(expense);
-
-        await context.SaveChangesAsync();
-
-        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
-        return Ok(dto);
     }
 
     [HttpPost("{id}/Attachment")]
@@ -148,55 +105,36 @@ public class ExpensesController : ControllerBase
         return Ok(url);
     }
 
-    private static string? GetAttachmentUrl(string? name)
-    {
-        if (name is null) return null;
-
-        return name is null ? null : $"http://127.0.0.1:10000/devstoreaccount1/attachments/{name}";
-    }
-
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ExpenseDto>> UpdateExpense(string id, UpdateExpenseDto updateExpenseDto)
     {
-        var expense = await context.Expenses
-            .Include(x => x.Project)
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        try
+        {
+            var activity = await _mediator.Send(new UpdateExpenseCommand(id, updateExpenseDto.Date, updateExpenseDto.Amount, updateExpenseDto.Description));
 
-        if (expense is null)
+            return Ok(activity);
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        expense.Date = DateOnly.FromDateTime(updateExpenseDto.Date);
-        expense.Amount = updateExpenseDto.Amount;
-        expense.Description = updateExpenseDto.Description;
-
-        await context.SaveChangesAsync();
-
-        var dto = new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
-        return Ok(dto);
     }
 
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> DeleteExpense(string id)
     {
-        var expense = await context.Expenses
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
+        try
+        {
+            var activity = await _mediator.Send(new DeleteExpenseCommand(id));
 
-        if (expense is null)
+            return Ok();
+        }
+        catch (Exception)
         {
             return NotFound();
         }
-
-        context.Expenses.Remove(expense);
-
-        await context.SaveChangesAsync();
-
-        return Ok();
     }
 
     /*

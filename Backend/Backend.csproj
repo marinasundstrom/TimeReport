@@ -5,8 +5,10 @@
     <TargetFramework>net6.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>TimeReport</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'Backend' " />
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.1" />
     <PackageReference Include="Azure.Identity" Version="1.5.0" />
@@ -18,8 +20,9 @@
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="6.0.1" />
     <PackageReference Include="Microsoft.Tye.Extensions.Configuration" Version="0.10.0-alpha.21420.1" />
-    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="MediatR.Extensions.Microsoft.DependencyInjection" Version="10.0.1" />
     <PackageReference Include="EPPlus" Version="5.8.4" />
+    <PackageReference Include="MediatR" Version="10.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -31,9 +34,22 @@
     <None Remove="EPPlus" />
     <None Remove="Application\" />
     <None Remove="Services\" />
+    <None Remove="Application\Activities\" />
+    <None Remove="Application\Expenses\" />
+    <None Remove="Application\Projects\" />
+    <None Remove="Application\Reports\" />
+    <None Remove="Application\TimeSheet\" />
+    <None Remove="Application\Users\" />
+    <None Remove="MediatR" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Application\" />
     <Folder Include="Services\" />
+    <Folder Include="Application\Activities\" />
+    <Folder Include="Application\Expenses\" />
+    <Folder Include="Application\Projects\" />
+    <Folder Include="Application\Reports\" />
+    <Folder Include="Application\TimeSheets\" />
+    <Folder Include="Application\Users\" />
   </ItemGroup>
 </Project>
