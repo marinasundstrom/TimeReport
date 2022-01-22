@@ -7,17 +7,16 @@
 
     <MudDialog>
         <DialogContent>
-
-            @if (MembershipId is null && users is not null)
+            @if (MembershipId is null)
             {
-                <MudAutocomplete T="UserDto" Label="User"  Class="mb-6" Variant="Variant.Outlined" @bind-Value="User" SearchFunc="@Search1"
+
+                <MudAutocomplete T="UserDto" Label="User" Class="mb-6" Variant="Variant.Outlined" @bind-Value="User" SearchFunc="@Search1"
                                  For="() => User"
                                  ToStringFunc="u => u?.GetDisplayName()"
                                  ResetValueOnEmptyText="true"
                                  CoerceText="true" CoerceValue="true"
                                  AdornmentIcon="@Icons.Material.Filled.Search" AdornmentColor="Color.Primary" />
             }
-
         </DialogContent>
 
         <DialogActions>
@@ -29,8 +28,6 @@
 </EditForm>
 
 @code {
-    IEnumerable<UserDto> users;
-
     [CascadingParameter] MudDialogInstance Modal { get; set; }
 
     [Parameter] public string? ProjectId { get; set; }
@@ -42,9 +39,6 @@
 
     protected override async Task OnInitializedAsync()
     {
-        var page = await UsersClient.GetUsersAsync(0, 10, null, null, null);
-        users = page.Items;
-
         if (MembershipId is not null)
         {
             var result = await ProjectsClient.GetProjectMembershipAsync(ProjectId, MembershipId);
