@@ -10,8 +10,15 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
+using TimeReport.Application;
+using TimeReport.Application.Activities;
 using TimeReport.Application.Common.Interfaces;
+using TimeReport.Application.Common.Models;
+using TimeReport.Application.Projects;
+using TimeReport.Application.TimeSheets;
+using TimeReport.Application.Users;
 using TimeReport.Domain.Entities;
+using TimeReport.Dtos;
 using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
@@ -64,7 +71,7 @@ public class TimeSheetsController : ControllerBase
 
         if (sortBy is not null)
         {
-            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
+            query = query.OrderBy(sortBy, sortDirection == SortDirection.Descending ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
         }
 
         var timeSheets = await query

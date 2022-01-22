@@ -48,6 +48,16 @@
     <None Remove="Domain\Common\" />
     <None Remove="Domain\Common\Interfaces\" />
     <None Remove="Infrastructure\Persistence\Configuration\" />
+    <None Remove="Application\Activities\Commands\" />
+    <None Remove="Application\Activities\Queries\" />
+    <None Remove="Application\Expenses\Commands\" />
+    <None Remove="Application\Expenses\Queries\" />
+    <None Remove="Application\Projects\Commands\" />
+    <None Remove="Application\Projects\Queries\" />
+    <None Remove="Application\Users\Commands\" />
+    <None Remove="Application\Users\Queries\" />
+    <None Remove="Application\Common\Models\" />
+    <None Remove="Dtos\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Application\" />
@@ -65,5 +75,15 @@
     <Folder Include="Domain\Common\" />
     <Folder Include="Domain\Common\Interfaces\" />
     <Folder Include="Infrastructure\Persistence\Configuration\" />
+    <Folder Include="Application\Activities\Commands\" />
+    <Folder Include="Application\Activities\Queries\" />
+    <Folder Include="Application\Expenses\Commands\" />
+    <Folder Include="Application\Expenses\Queries\" />
+    <Folder Include="Application\Projects\Commands\" />
+    <Folder Include="Application\Projects\Queries\" />
+    <Folder Include="Application\Users\Commands\" />
+    <Folder Include="Application\Users\Queries\" />
+    <Folder Include="Application\Common\Models\" />
+    <Folder Include="Dtos\" />
   </ItemGroup>
 </Project>

@@ -5,7 +5,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using TimeReport.Application.Common.Interfaces;
+using TimeReport.Application.Common.Models;
+using TimeReport.Application.Projects;
 using TimeReport.Application.Users;
+using TimeReport.Application.Users.Commands;
+using TimeReport.Application.Users.Queries;
 using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
@@ -106,7 +110,7 @@ public class UsersController : ControllerBase
 
         if (sortBy is not null)
         {
-            query = query.OrderBy(sortBy, sortDirection == SortDirection.Desc ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
+            query = query.OrderBy(sortBy, sortDirection == SortDirection.Descending ? TimeReport.SortDirection.Descending : TimeReport.SortDirection.Ascending);
         }
 
         var projectMemberships = await query

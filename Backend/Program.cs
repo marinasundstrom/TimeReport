@@ -101,4 +101,4 @@ app.MapControllers();
 app.MapHub<ItemsHub>("/hubs/items");
 app.MapFallbackToFile("index.html"); 
 
-app.Run(); 
+app.Run();
