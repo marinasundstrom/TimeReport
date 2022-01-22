@@ -5,6 +5,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 using TimeReport.Application.Common.Interfaces;
 using TimeReport.Infrastructure.Persistence;
+using TimeReport.Infrastructure.Services;
 
 namespace TimeReport.Infrastructure;
 
@@ -23,9 +24,9 @@ public static class ServiceExtensions
 
         services.AddScoped<ITimeReportContext>(sp => sp.GetRequiredService<TimeReportContext>());
 
-        //services.AddScoped<IDomainEventService, DomainEventService>();
+        services.AddScoped<IDomainEventService, DomainEventService>();
 
-        //services.AddTransient<IDateTime, DateTimeService>();
+        services.AddTransient<IDateTime, DateTimeService>();
 
         return services;
     }

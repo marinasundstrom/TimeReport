@@ -1,4 +1,6 @@
 ﻿
+using MediatR;
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,9 +10,13 @@ using TimeReport.Application.Common.Interfaces;
 using TimeReport.Application.Common.Models;
 using TimeReport.Application.Projects;
 using TimeReport.Application.TimeSheets;
+using TimeReport.Application.TimeSheets.Commands;
 using TimeReport.Application.Users;
 using TimeReport.Domain.Entities;
+using TimeReport.Domain.Exceptions;
 using TimeReport.Dtos;
+
+using static TimeReport.Application.TimeSheets.Constants;
 
 namespace TimeReport.Controllers;
 
@@ -18,12 +24,12 @@ namespace TimeReport.Controllers;
 [Route("[controller]")]
 public class TimeSheetsController : ControllerBase
 {
-    private const double WorkingWeekHours = 40;
+    private readonly IMediator _mediator;
     private readonly ITimeReportContext context;
-    private const double WorkingDayHours = 8;
 
-    public TimeSheetsController(ITimeReportContext context)
+    public TimeSheetsController(IMediator mediator, ITimeReportContext context)
     {
+        _mediator = mediator;
         this.context = context;
     }
 
@@ -318,294 +324,121 @@ public class TimeSheetsController : ControllerBase
     [HttpPost("{timeSheetId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<EntryDto>> CreateEntry([FromRoute] string timeSheetId, CreateEntryDto dto, CancellationToken cancellationToken)
     {
-        var timeSheet = await context.TimeSheets
-            .Include(x => x.User)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Project)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Activity)
-            .ThenInclude(x => x.Project)
-            .AsSplitQuery()
-            .FirstAsync(x => x.Id == timeSheetId);
-
-        if (timeSheet is null)
+        try
         {
-            return NotFound();
+            var date = DateOnly.FromDateTime(dto.Date);
+            var newDto = await _mediator.Send(new CreateEntryCommand(timeSheetId, dto.ProjectId, dto.ActivityId, DateOnly.FromDateTime(dto.Date), dto.Hours, dto.Description));
+            return Ok(newDto);
         }
-
-        if (timeSheet.Status != TimeSheetStatus.Open)
+        catch(TimeSheetNotFoundException exc)
         {
-            return Problem(
-                          title: "Timesheet is closed",
-                          detail: $"Updating entries of a Timesheet when not in Open state is not allowed.",
-                          statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        var group = await context.MonthEntryGroups
-            .FirstOrDefaultAsync(meg =>
-                meg.User.Id == timeSheet.User.Id
-                && meg.Year == dto.Date.Year
-                && meg.Month == dto.Date.Month);
-
-        if (group is null)
+        catch (TimeSheetClosedException exc)
         {
-            group = new MonthEntryGroup
-            {
-                Id = Guid.NewGuid().ToString(),
-                User = timeSheet.User,
-                Year = dto.Date.Year,
-                Month = dto.Date.Month,
-                Status = EntryStatus.Unlocked
-            };
-
-            context.MonthEntryGroups.Add(group);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-        else
+        catch (MonthLockedException exc)
         {
-            if (group.Status == EntryStatus.Locked)
-            {
-                return Problem(
-                          title: "Month is locked",
-                          detail: $"Updating entries of a month that has been locked is not allowed.",
-                          statusCode: StatusCodes.Status403Forbidden);
-            }
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        var date = DateOnly.FromDateTime(dto.Date);
-
-        var existingEntryWithDate = timeSheet.Entries
-            .FirstOrDefault(e => e.Date == date && e.Project.Id == dto.ProjectId && e.Activity.Id == dto.ActivityId);
-
-        if (existingEntryWithDate is not null)
+        catch (EntryAlreadyExistsException exc)
         {
-            return Problem(
-                          title: "Entry already exists",
-                          detail: $"Entry for this activity and date does already exist.",
-                          statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        var project = await context.Projects
-            .Include(x => x.Activities)
-            .FirstOrDefaultAsync(x => x.Id == dto.ProjectId);
-
-        if (project is null)
+        catch (ProjectNotFoundException exc)
         {
-            return Problem(
-                           title: "Project not found",
-                           detail: $"No project with Id {dto.ProjectId} was found.",
-                           statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        var activity = project!.Activities.FirstOrDefault(x => x.Id == dto.ActivityId);
-
-        if (activity is null)
+        catch (ActivityNotFoundException exc)
         {
-            return Problem(
-                          title: "Activity not found",
-                          detail: $"No activity with Id {dto.ActivityId} was found.",
-                          statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        var dateOnly = DateOnly.FromDateTime(dto.Date);
-
-        double totalHoursDay = timeSheet.Entries.Where(e => e.Date == dateOnly).Sum(e => e.Hours.GetValueOrDefault())
-            + dto.Hours.GetValueOrDefault();
-
-        if (totalHoursDay > WorkingDayHours)
+        catch (DayHoursExceedPermittedDailyWorkingHoursException exc)
         {
-            return Problem(
-                title: "Exceeds permitted daily working hours",
-                detail: $"Reported daily time exceeds {WorkingDayHours} hours.",
-                statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        double totalHoursWeek = timeSheet.Entries.Sum(x => x.Hours.GetValueOrDefault())
-            + dto.Hours.GetValueOrDefault();
-
-        if (totalHoursWeek > WorkingWeekHours)
+        catch (WeekHoursExceedPermittedWeeklyWorkingHoursException exc)
         {
-            return Problem(
-                title: "Exceeds permitted weekly working hours",
-                detail: $"Reported weekly time exceeds {WorkingWeekHours} hours.",
-                statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        var timeSheetActivity = await context.TimeSheetActivities
-            .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id);
-
-        if (timeSheetActivity is null)
-        {
-            timeSheetActivity = new TimeSheetActivity
-            {
-                Id = Guid.NewGuid().ToString(),
-                TimeSheet = timeSheet,
-                Project = project,
-                Activity = activity
-            };
-
-            context.TimeSheetActivities.Add(timeSheetActivity);
-        }
-
-        var entry = new Entry
-        {
-            Id = Guid.NewGuid().ToString(),
-            User = timeSheet.User,
-            Project = project,
-            Activity = activity,
-            TimeSheetActivity = timeSheetActivity,
-            Date = DateOnly.FromDateTime(dto.Date),
-            Hours = dto.Hours,
-            Description = dto.Description
-        };
-
-        timeSheet.Entries.Add(entry);
-
-        entry.MonthGroup = group;
-
-        group.Entries.Add(entry);
-
-        await context.SaveChangesAsync();
-
-        var e = entry;
-
-        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status);
-
-        return Ok(newDto);
     }
 
     [HttpPut("{timeSheetId}/{entryId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<EntryDto>> UpdateEntry([FromRoute] string timeSheetId, [FromRoute] string entryId, UpdateEntryDto dto, CancellationToken cancellationToken)
     {
-        var timeSheet = await context.TimeSheets
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.MonthGroup)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Project)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Activity)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Activity)
-            .ThenInclude(x => x.Project)
-            .AsSplitQuery()
-            .FirstAsync(x => x.Id == timeSheetId);
-
-        if (timeSheet is null)
+        try
         {
-            return NotFound();
+            var newDto = await _mediator.Send(new UpdateEntryCommand(timeSheetId, entryId, dto.Hours, dto.Description));
+            return Ok(newDto);
         }
-
-        if (timeSheet.Status != TimeSheetStatus.Open)
+        catch (TimeSheetNotFoundException exc)
         {
-            return Problem(
-                          title: "Timesheet is closed",
-                          detail: $"Updating entries of a Timesheet when not in Open state is not allowed.",
-                          statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        var entry = timeSheet.Entries.FirstOrDefault(e => e.Id == entryId);
-
-        if (entry is null)
+        catch (TimeSheetClosedException exc)
         {
-            return NotFound();
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        if (entry.MonthGroup.Status == EntryStatus.Locked)
+        catch (MonthLockedException exc)
         {
-            return Problem(
-                      title: "Month is locked",
-                      detail: $"Updating entries of a month that has been locked is not allowed.",
-                      statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        entry.Hours = dto.Hours;
-        entry.Description = dto.Description;
-
-        double totalHoursDay = timeSheet.Entries.Where(e => e.Date == entry.Date).Sum(e => e.Hours.GetValueOrDefault());
-        if (totalHoursDay > WorkingDayHours)
+        catch (EntryAlreadyExistsException exc)
         {
-            return Problem(
-                title: "Exceeds permitted daily working hours",
-                detail: $"Reported daily time exceeds {WorkingDayHours} hours.",
-                statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        double totalHoursWeek = timeSheet.Entries.Sum(x => x.Hours.GetValueOrDefault());
-        if (totalHoursWeek > WorkingWeekHours)
+        catch (DayHoursExceedPermittedDailyWorkingHoursException exc)
         {
-            return Problem(
-                title: "Exceeds permitted weekly working hours",
-                detail: $"Reported weekly time exceeds {WorkingWeekHours} hours.",
-                statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        await context.SaveChangesAsync();
-
-        var e = entry;
-
-        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status);
-
-        return Ok(newDto);
+        catch (WeekHoursExceedPermittedWeeklyWorkingHoursException exc)
+        {
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
+        }
     }
 
     [HttpPut("{timeSheetId}/{entryId}/Details")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<EntryDto>> UpdateEntryDetails([FromRoute] string timeSheetId, [FromRoute] string entryId, UpdateEntryDetailsDto dto, CancellationToken cancellationToken)
     {
-        var timeSheet = await context.TimeSheets
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.MonthGroup)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Project)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Activity)
-            .Include(x => x.Entries)
-            .ThenInclude(x => x.Activity)
-            .ThenInclude(x => x.Project)
-            .AsSplitQuery()
-            .FirstAsync(x => x.Id == timeSheetId);
-
-        if (timeSheet is null)
-        {
-            return BadRequest();
+        try
+        { 
+            var newDto = await _mediator.Send(new UpdateEntryDetailsCommand(timeSheetId, entryId, dto.Description));
+            return Ok(newDto);
         }
-
-        if (timeSheet.Status != TimeSheetStatus.Open)
+        catch (TimeSheetNotFoundException exc)
         {
-            return Problem(
-                          title: "Timesheet is closed",
-                          detail: $"Updating entries of a Timesheet when not in Open state is not allowed.",
-                          statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        var entry = timeSheet.Entries.FirstOrDefault(e => e.Id == entryId);
-
-        if (entry is null)
+        catch (TimeSheetClosedException exc)
         {
-            return BadRequest();
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        if (entry.MonthGroup.Status == EntryStatus.Locked)
+        catch (MonthLockedException exc)
         {
-            return Problem(
-                      title: "Month is locked",
-                      detail: $"Updating entries of a month that has been locked is not allowed.",
-                      statusCode: StatusCodes.Status403Forbidden);
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
-
-        entry.Description = dto.Description;
-
-        await context.SaveChangesAsync();
-
-        var e = entry;
-
-        var newDto = new EntryDto(e.Id, new ProjectDto(e.Project.Id, e.Project.Name, e.Project.Description), new ActivityDto(e.Activity.Id, e.Activity.Name, e.Activity.Description, e.Activity.HourlyRate, new ProjectDto(e.Activity.Project.Id, e.Activity.Project.Name, e.Activity.Project.Description)), e.Date.ToDateTime(TimeOnly.Parse("01:00")), e.Hours, e.Description, (EntryStatusDto)e.MonthGroup.Status);
-
-        return Ok(newDto);
+        catch (EntryAlreadyExistsException exc)
+        {
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
+        }
+        catch (DayHoursExceedPermittedDailyWorkingHoursException exc)
+        {
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
+        }
+        catch (WeekHoursExceedPermittedWeeklyWorkingHoursException exc)
+        {
+            return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
+        }
     }
 
     [HttpDelete("{timeSheetId}/{activityId}")]

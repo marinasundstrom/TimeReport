@@ -1,7 +1,9 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 using TimeReport.Application.Common.Interfaces;
+using TimeReport.Domain.Common;
 using TimeReport.Domain.Common.Interfaces;
 using TimeReport.Domain.Entities;
 using TimeReport.Infrastructure.Persistence.Configurations;
@@ -11,10 +13,18 @@ namespace TimeReport.Infrastructure.Persistence;
 public class TimeReportContext : DbContext, ITimeReportContext
 {
     private readonly ICurrentUserService _currentUserService;
+    private readonly IDomainEventService _domainEventService;
+    private readonly IDateTime _dateTime;
 
-    public TimeReportContext(DbContextOptions<TimeReportContext> options, ICurrentUserService currentUserService) : base(options)
+    public TimeReportContext(
+        DbContextOptions<TimeReportContext> options,
+        ICurrentUserService currentUserService,
+        IDomainEventService domainEventService,
+        IDateTime dateTime) : base(options)
     {
         _currentUserService = currentUserService;
+        _domainEventService = domainEventService;
+        _dateTime = dateTime;
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -50,19 +60,19 @@ public class TimeReportContext : DbContext, ITimeReportContext
             {
                 case EntityState.Added:
                     entry.Entity.CreatedBy = _currentUserService.UserId;
-                    entry.Entity.Created = DateTime.Now;
+                    entry.Entity.Created = _dateTime.Now;
                     break;
 
                 case EntityState.Modified:
                     entry.Entity.LastModifiedBy = _currentUserService.UserId;
-                    entry.Entity.LastModified = DateTime.Now;
+                    entry.Entity.LastModified = _dateTime.Now;
                     break;
 
                 case EntityState.Deleted:
                     if (entry.Entity is ISoftDelete softDelete)
                     {
                         softDelete.DeletedBy = _currentUserService.UserId;
-                        softDelete.Deleted = DateTime.Now;
+                        softDelete.Deleted = _dateTime.Now;
 
                         entry.State = EntityState.Modified;
                     }
@@ -70,8 +80,48 @@ public class TimeReportContext : DbContext, ITimeReportContext
             }
         }
 
+        var events = ChangeTracker.Entries<IHasDomainEvent>()
+            .Select(x => x.Entity.DomainEvents)
+            .SelectMany(x => x)
+            .Where(domainEvent => !domainEvent.IsPublished)
+            .ToArray();
+
         var result = await base.SaveChangesAsync(cancellationToken);
 
+        await DispatchEvents(events);
+
         return result;
+    }
+
+    private async Task DispatchEvents(DomainEvent[] events)
+    {
+        foreach (var @event in events)
+        {
+            @event.IsPublished = true;
+            await _domainEventService.Publish(@event);
+        }
+    }
+
+    public async Task<ITransaction> BeginTransactionAsync()
+    {
+        return new UoWTransaction(
+            await Database.BeginTransactionAsync());
+    }
+
+    class UoWTransaction : ITransaction
+    {
+        private readonly IDbContextTransaction _transaction;
+
+        public UoWTransaction(IDbContextTransaction transaction)
+        {
+            _transaction = transaction;
+        }
+
+        public Task CommitAsync() => _transaction.CommitAsync();
+
+
+        public void Dispose() => _transaction.Dispose();
+
+        public Task RollbackAsync() => _transaction.RollbackAsync();
     }
 }

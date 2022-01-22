@@ -50,7 +50,7 @@ public class GetProjectsQuery : IRequest<ItemsResult<ProjectDto>>
 
             if (request.SearchString is not null)
             {
-                query = query.Where(project => project.Description.ToLower().Contains(request.SearchString.ToLower()));
+                query = query.Where(project => project.Name.ToLower().Contains(request.SearchString.ToLower()) || project.Description.ToLower().Contains(request.SearchString.ToLower()));
             }
 
             var totalItems = await query.CountAsync();

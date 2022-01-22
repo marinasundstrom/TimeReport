@@ -57,7 +57,7 @@ public class GetActivitiesQuery : IRequest<ItemsResult<ActivityDto>>
 
             if (request.SearchString is not null)
             {
-                query = query.Where(activity => activity.Name.ToLower().Contains(request.SearchString.ToLower()));
+                query = query.Where(activity => activity.Name.ToLower().Contains(request.SearchString.ToLower()) || activity.Description.ToLower().Contains(request.SearchString.ToLower()));
             }
 
             var totalItems = await query.CountAsync();

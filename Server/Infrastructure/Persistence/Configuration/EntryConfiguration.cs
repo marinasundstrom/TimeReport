@@ -14,5 +14,7 @@ public class EntryConfiguration : IEntityTypeConfiguration<Entry>
 
         builder.Property(x => x.Date)
                 .HasConversion(x => x.ToDateTime(TimeOnly.Parse("01:00")), x => DateOnly.FromDateTime(x));
+
+        builder.Ignore(e => e.DomainEvents);
     }
 }
