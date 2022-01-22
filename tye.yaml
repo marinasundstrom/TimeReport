@@ -4,10 +4,16 @@
 # when you've given us a try, we'd love to know what you think:
 #    https://aka.ms/AA7q20u
 #
-name: backend
+name: webapp
 services:
-- name: backend
-  project: Backend/Backend.csproj
+- name: webapp
+  project: Client/TimeReport/TimeReport.csproj
+  bindings:
+  - protocol: https
+    port: 5010
+
+- name: api
+  project: Server/Backend/Backend.csproj
   bindings:
   - protocol: https
     port: 5020

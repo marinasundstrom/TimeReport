@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 25.0.1700.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Backend\Backend.csproj", "{FE6903F2-2B09-494A-8F14-5F9D9428FA04}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend", "Server\Backend\Backend.csproj", "{FE6903F2-2B09-494A-8F14-5F9D9428FA04}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend.Client", "Backend.Client\Backend.Client.csproj", "{C4876FBC-02BE-4E01-B97A-6B109C094074}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Backend.Client", "Client\Backend.Client\Backend.Client.csproj", "{C4876FBC-02BE-4E01-B97A-6B109C094074}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{F4543430-B73F-4E9B-A833-54A5A7E6E016}"
 	ProjectSection(SolutionItems) = preProject
@@ -14,7 +14,17 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		nginx.conf = nginx.conf
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeReport", "TimeReport\TimeReport.csproj", "{E95FFF41-F202-4A54-B670-0D10359F33B8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TimeReport", "Client\TimeReport\TimeReport.csproj", "{E95FFF41-F202-4A54-B670-0D10359F33B8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Application", "Server\Application\Application.csproj", "{8E0ECC7D-CB4B-4566-BA06-A986B2FE4E76}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Domain", "Server\Domain\Domain.csproj", "{AF0366A8-FBEC-4FCB-B3FF-F051E808DF6E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Infrastructure", "Server\Infrastructure\Infrastructure.csproj", "{A55119FE-9CF6-4A14-A2C5-515B14C04E28}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Server", "Server", "{FB89C97C-D0AE-4F72-B078-62D5F8F66896}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Client", "Client", "{1D84D6EA-84E4-47DA-9ABF-E8C0DD2F5DDA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -34,11 +44,31 @@ Global
 		{E95FFF41-F202-4A54-B670-0D10359F33B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E95FFF41-F202-4A54-B670-0D10359F33B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E95FFF41-F202-4A54-B670-0D10359F33B8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E0ECC7D-CB4B-4566-BA06-A986B2FE4E76}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E0ECC7D-CB4B-4566-BA06-A986B2FE4E76}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E0ECC7D-CB4B-4566-BA06-A986B2FE4E76}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E0ECC7D-CB4B-4566-BA06-A986B2FE4E76}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AF0366A8-FBEC-4FCB-B3FF-F051E808DF6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AF0366A8-FBEC-4FCB-B3FF-F051E808DF6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AF0366A8-FBEC-4FCB-B3FF-F051E808DF6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AF0366A8-FBEC-4FCB-B3FF-F051E808DF6E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A55119FE-9CF6-4A14-A2C5-515B14C04E28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A55119FE-9CF6-4A14-A2C5-515B14C04E28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A55119FE-9CF6-4A14-A2C5-515B14C04E28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A55119FE-9CF6-4A14-A2C5-515B14C04E28}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F844EC9E-6AEE-4238-921B-05A9DCE3EE16}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{AF0366A8-FBEC-4FCB-B3FF-F051E808DF6E} = {FB89C97C-D0AE-4F72-B078-62D5F8F66896}
+		{A55119FE-9CF6-4A14-A2C5-515B14C04E28} = {FB89C97C-D0AE-4F72-B078-62D5F8F66896}
+		{8E0ECC7D-CB4B-4566-BA06-A986B2FE4E76} = {FB89C97C-D0AE-4F72-B078-62D5F8F66896}
+		{C4876FBC-02BE-4E01-B97A-6B109C094074} = {1D84D6EA-84E4-47DA-9ABF-E8C0DD2F5DDA}
+		{E95FFF41-F202-4A54-B670-0D10359F33B8} = {1D84D6EA-84E4-47DA-9ABF-E8C0DD2F5DDA}
+		{FE6903F2-2B09-494A-8F14-5F9D9428FA04} = {FB89C97C-D0AE-4F72-B078-62D5F8F66896}
 	EndGlobalSection
 EndGlobal
