@@ -13,7 +13,7 @@ services:
     port: 5010
 
 - name: api
-  project: Server/Backend/Backend.csproj
+  project: Server/WebApi/WebApi.csproj
   bindings:
   - protocol: https
     port: 5020
