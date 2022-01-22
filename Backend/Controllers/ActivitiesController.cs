@@ -5,7 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 using TimeReport.Application.Activities;
-using TimeReport.Data;
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 
@@ -14,9 +15,9 @@ namespace TimeReport.Controllers;
 public class ActivitiesController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly TimeReportContext context;
+    private readonly ITimeReportContext context;
 
-    public ActivitiesController(IMediator mediator, TimeReportContext context)
+    public ActivitiesController(IMediator mediator, ITimeReportContext context)
     {
         _mediator = mediator;
         this.context = context;

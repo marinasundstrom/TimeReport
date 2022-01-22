@@ -6,8 +6,9 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Application.Expenses;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 using static TimeReport.Application.Expenses.ExpensesHelpers;
 
@@ -18,10 +19,10 @@ namespace TimeReport.Controllers;
 public class ExpensesController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly TimeReportContext context;
+    private readonly ITimeReportContext context;
     private readonly BlobServiceClient blobServiceClient;
 
-    public ExpensesController(IMediator mediator, TimeReportContext context, BlobServiceClient blobServiceClient)
+    public ExpensesController(IMediator mediator, ITimeReportContext context, BlobServiceClient blobServiceClient)
     {
         _mediator = mediator;
         this.context = context;

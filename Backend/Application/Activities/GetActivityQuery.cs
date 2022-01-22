@@ -3,8 +3,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Activities;
 
@@ -19,9 +20,9 @@ public class GetActivityQuery : IRequest<ActivityDto>
 
     public class GetActivityQueryHandler : IRequestHandler<GetActivityQuery, ActivityDto>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public GetActivityQueryHandler(TimeReportContext context)
+        public GetActivityQueryHandler(ITimeReportContext context)
         {
             _context = context;
         }
@@ -33,6 +34,11 @@ public class GetActivityQuery : IRequest<ActivityDto>
                .AsNoTracking()
                .AsSplitQuery()
                .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+            if (activity is null)
+            {
+                throw new Exception();
+            }
 
             return new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
         }

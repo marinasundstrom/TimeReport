@@ -4,8 +4,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Users;
 
@@ -20,9 +21,9 @@ public class GetUserStatisticsSummaryQuery : IRequest<StatisticsSummary>
 
     public class GetUserStatisticsSummaryQueryHandler : IRequestHandler<GetUserStatisticsSummaryQuery, StatisticsSummary>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public GetUserStatisticsSummaryQueryHandler(TimeReportContext context)
+        public GetUserStatisticsSummaryQueryHandler(ITimeReportContext context)
         {
             _context = context;
         }

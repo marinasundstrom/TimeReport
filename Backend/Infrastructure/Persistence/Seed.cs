@@ -2,7 +2,10 @@ using System.Globalization;
 
 using Microsoft.EntityFrameworkCore;
 
-using TimeReport.Data;
+using TimeReport.Domain.Entities;
+using TimeReport.Infrastructure;
+
+namespace TimeReport.Infrastructure.Persistence;
 
 static class Seed
 {

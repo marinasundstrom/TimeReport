@@ -10,7 +10,9 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-using TimeReport.Data;
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Domain.Entities;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 
@@ -19,10 +21,10 @@ namespace TimeReport.Controllers;
 public class TimeSheetsController : ControllerBase
 {
     private const double WorkingWeekHours = 40;
-    private readonly TimeReportContext context;
+    private readonly ITimeReportContext context;
     private const double WorkingDayHours = 8;
 
-    public TimeSheetsController(TimeReportContext context)
+    public TimeSheetsController(ITimeReportContext context)
     {
         this.context = context;
     }

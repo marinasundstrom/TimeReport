@@ -3,8 +3,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Projects;
 
@@ -19,9 +20,9 @@ public class GetProjectQuery : IRequest<ProjectDto>
 
     public class GetProjectQueryHandler : IRequestHandler<GetProjectQuery, ProjectDto>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public GetProjectQueryHandler(TimeReportContext context)
+        public GetProjectQueryHandler(ITimeReportContext context)
         {
             _context = context;
         }

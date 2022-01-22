@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace TimeReport.Data;
+namespace TimeReport.Domain.Entities;
 
 public abstract class AuditableEntity
 {

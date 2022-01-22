@@ -4,7 +4,8 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
-using TimeReport.Data;
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Expenses;
 
@@ -19,9 +20,9 @@ public class DeleteExpenseCommand : IRequest
 
     public class DeleteExpenseCommandHandler : IRequestHandler<DeleteExpenseCommand>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public DeleteExpenseCommandHandler(TimeReportContext context)
+        public DeleteExpenseCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }

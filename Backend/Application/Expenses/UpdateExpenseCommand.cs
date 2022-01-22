@@ -3,8 +3,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 using static TimeReport.Application.Expenses.ExpensesHelpers;
 
@@ -30,9 +31,9 @@ public class UpdateExpenseCommand : IRequest<ExpenseDto>
 
     public class UpdateExpenseCommandHandler : IRequestHandler<UpdateExpenseCommand, ExpenseDto>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public UpdateExpenseCommandHandler(TimeReportContext context)
+        public UpdateExpenseCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }

@@ -1,8 +1,10 @@
 ﻿
 using MediatR;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Domain.Entities;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Projects;
 
@@ -20,9 +22,9 @@ public class CreateProjectCommand : IRequest<ProjectDto>
 
     public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand, ProjectDto>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public CreateProjectCommandHandler(TimeReportContext context)
+        public CreateProjectCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }

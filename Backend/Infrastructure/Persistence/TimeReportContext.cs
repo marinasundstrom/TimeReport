@@ -2,12 +2,15 @@
 
 using Microsoft.EntityFrameworkCore;
 
-using TimeReport.Data.Configurations;
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Domain.Common.Interfaces;
+using TimeReport.Domain.Entities;
+using TimeReport.Infrastructure.Persistence.Configurations;
 using TimeReport.Services;
 
-namespace TimeReport.Data;
+namespace TimeReport.Infrastructure.Persistence;
 
-public class TimeReportContext : DbContext
+public class TimeReportContext : DbContext, ITimeReportContext
 {
     private readonly ICurrentUserService _currentUserService;
 

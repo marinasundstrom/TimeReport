@@ -4,8 +4,10 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Application.Projects;
-using TimeReport.Data;
+using TimeReport.Domain.Entities;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 
@@ -14,9 +16,9 @@ namespace TimeReport.Controllers;
 public class ProjectsController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly TimeReportContext context;
+    private readonly ITimeReportContext context;
 
-    public ProjectsController(IMediator mediator, TimeReportContext context)
+    public ProjectsController(IMediator mediator, ITimeReportContext context)
     {
         _mediator = mediator;
         this.context = context;

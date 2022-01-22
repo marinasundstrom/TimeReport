@@ -41,6 +41,13 @@
     <None Remove="Application\TimeSheet\" />
     <None Remove="Application\Users\" />
     <None Remove="MediatR" />
+    <None Remove="Application\Common\" />
+    <None Remove="Application\Common\Interfaces\" />
+    <None Remove="Domain\" />
+    <None Remove="Domain\Entities\" />
+    <None Remove="Domain\Common\" />
+    <None Remove="Domain\Common\Interfaces\" />
+    <None Remove="Infrastructure\Persistence\Configuration\" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Application\" />
@@ -51,5 +58,12 @@
     <Folder Include="Application\Reports\" />
     <Folder Include="Application\TimeSheets\" />
     <Folder Include="Application\Users\" />
+    <Folder Include="Application\Common\" />
+    <Folder Include="Application\Common\Interfaces\" />
+    <Folder Include="Domain\" />
+    <Folder Include="Domain\Entities\" />
+    <Folder Include="Domain\Common\" />
+    <Folder Include="Domain\Common\Interfaces\" />
+    <Folder Include="Infrastructure\Persistence\Configuration\" />
   </ItemGroup>
 </Project>

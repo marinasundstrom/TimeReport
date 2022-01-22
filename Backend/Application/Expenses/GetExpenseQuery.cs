@@ -3,8 +3,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 using static TimeReport.Application.Expenses.ExpensesHelpers;
 
@@ -21,9 +22,9 @@ public class GetExpenseQuery : IRequest<ExpenseDto>
 
     public class GetExpenseQueryHandler : IRequestHandler<GetExpenseQuery, ExpenseDto>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public GetExpenseQueryHandler(TimeReportContext context)
+        public GetExpenseQueryHandler(ITimeReportContext context)
         {
             _context = context;
         }
@@ -35,6 +36,11 @@ public class GetExpenseQuery : IRequest<ExpenseDto>
                .AsNoTracking()
                .AsSplitQuery()
                .FirstOrDefaultAsync(x => x.Id == request.Id);
+
+            if(expense is null)
+            {
+                throw new Exception();
+            }
 
             return new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
         }

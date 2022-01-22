@@ -3,7 +3,8 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
-using TimeReport.Data;
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Users;
 
@@ -18,9 +19,9 @@ public class DeleteUserCommand : IRequest
 
     public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public DeleteUserCommandHandler(TimeReportContext context)
+        public DeleteUserCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }

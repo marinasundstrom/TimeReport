@@ -12,9 +12,11 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Azure;
 
 using TimeReport;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 using TimeReport.Hubs;
 using TimeReport.Services;
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Infrastructure.Persistence;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -36,6 +38,7 @@ CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("sv-SE");
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.CurrentCulture;
 
 services.AddSqlServer<TimeReportContext>(Configuration.GetConnectionString("mssql"));
+services.AddScoped<ITimeReportContext>(sp => sp.GetRequiredService<TimeReportContext>());
 
 services.AddEndpointsApiExplorer();
 

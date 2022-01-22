@@ -3,8 +3,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Users;
 
@@ -34,9 +35,9 @@ public class UpdateUserCommand : IRequest<UserDto>
 
     public class UpdateUserCommandHandler : IRequestHandler<UpdateUserCommand, UserDto>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public UpdateUserCommandHandler(TimeReportContext context)
+        public UpdateUserCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }

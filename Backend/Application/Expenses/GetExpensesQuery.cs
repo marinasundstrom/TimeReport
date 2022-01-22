@@ -3,8 +3,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 using static TimeReport.Application.Expenses.ExpensesHelpers;
 
@@ -36,9 +37,9 @@ public class GetExpensesQuery : IRequest<ItemsResult<ExpenseDto>>
 
     public class GetExpensesQueryHandler : IRequestHandler<GetExpensesQuery, ItemsResult<ExpenseDto>>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public GetExpensesQueryHandler(TimeReportContext context)
+        public GetExpensesQueryHandler(ITimeReportContext context)
         {
             _context = context;
         }

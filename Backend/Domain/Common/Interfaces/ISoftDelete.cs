@@ -1,4 +1,4 @@
-﻿namespace TimeReport.Data;
+﻿namespace TimeReport.Domain.Common.Interfaces;
 
 public interface ISoftDelete
 {

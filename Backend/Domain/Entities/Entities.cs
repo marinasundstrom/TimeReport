@@ -2,9 +2,10 @@
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Domain.Common.Interfaces;
 using TimeReport.Services;
 
-namespace TimeReport.Data;
+namespace TimeReport.Domain.Entities;
 
 public class User : AuditableEntity, ISoftDelete
 {

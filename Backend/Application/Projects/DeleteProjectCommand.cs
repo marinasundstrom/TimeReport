@@ -3,7 +3,8 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
-using TimeReport.Data;
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Projects;
 
@@ -18,9 +19,9 @@ public class DeleteProjectCommand : IRequest
 
     public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public DeleteProjectCommandHandler(TimeReportContext context)
+        public DeleteProjectCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }

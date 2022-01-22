@@ -1,6 +1,7 @@
-using TimeReport.Data;
+using TimeReport.Domain.Entities;
+using TimeReport.Infrastructure;
 
-namespace TimeReport.Hubs;
+namespace TimeReport.Application.Common.Interfaces;
 
 public interface IItemsClient
 {

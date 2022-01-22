@@ -1,4 +1,4 @@
-﻿namespace TimeReport.Services;
+﻿namespace TimeReport.Application.Common.Interfaces;
 
 public interface ICurrentUserService
 {

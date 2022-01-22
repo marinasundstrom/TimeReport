@@ -3,8 +3,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Users;
 
@@ -33,9 +34,9 @@ public class GetUsersQuery : IRequest<ItemsResult<UserDto>>
 
     public class GetUsersQueryHandler : IRequestHandler<GetUsersQuery, ItemsResult<UserDto>>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public GetUsersQueryHandler(TimeReportContext context)
+        public GetUsersQueryHandler(ITimeReportContext context)
         {
             _context = context;
         }

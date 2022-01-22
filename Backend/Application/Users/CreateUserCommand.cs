@@ -1,8 +1,10 @@
 ﻿
 using MediatR;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Domain.Entities;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Users;
 
@@ -29,9 +31,9 @@ public class CreateUserCommand : IRequest<UserDto>
 
     public class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, UserDto>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public CreateUserCommandHandler(TimeReportContext context)
+        public CreateUserCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }

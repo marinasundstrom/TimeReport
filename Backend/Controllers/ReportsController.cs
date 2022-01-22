@@ -4,7 +4,8 @@ using Microsoft.EntityFrameworkCore;
 
 using OfficeOpenXml;
 
-using TimeReport.Data;
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 
@@ -12,9 +13,9 @@ namespace TimeReport.Controllers;
 [Route("api/[controller]")]
 public class ReportsController : ControllerBase
 {
-    private readonly TimeReportContext context;
+    private readonly ITimeReportContext context;
 
-    public ReportsController(TimeReportContext context)
+    public ReportsController(ITimeReportContext context)
     {
         this.context = context;
     }

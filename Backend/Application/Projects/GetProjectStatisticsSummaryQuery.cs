@@ -4,8 +4,9 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Projects;
 
@@ -20,9 +21,9 @@ public class GetProjectStatisticsSummaryQuery : IRequest<StatisticsSummary>
 
     public class GetProjectStatisticsSummaryQueryHandler : IRequestHandler<GetProjectStatisticsSummaryQuery, StatisticsSummary>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public GetProjectStatisticsSummaryQueryHandler(TimeReportContext context)
+        public GetProjectStatisticsSummaryQueryHandler(ITimeReportContext context)
         {
             _context = context;
         }

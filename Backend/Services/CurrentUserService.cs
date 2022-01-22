@@ -2,6 +2,8 @@
 
 using Microsoft.AspNetCore.Http;
 
+using TimeReport.Application.Common.Interfaces;
+
 namespace TimeReport.Services;
 
 public class CurrentUserService : ICurrentUserService

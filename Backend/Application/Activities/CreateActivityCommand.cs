@@ -3,8 +3,10 @@ using MediatR;
 
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Controllers;
-using TimeReport.Data;
+using TimeReport.Domain.Entities;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Application.Activities;
 
@@ -25,9 +27,9 @@ public class CreateActivityCommand : IRequest<ActivityDto>
 
     public class CreateActivityCommandHandler : IRequestHandler<CreateActivityCommand, ActivityDto>
     {
-        private readonly TimeReportContext _context;
+        private readonly ITimeReportContext _context;
 
-        public CreateActivityCommandHandler(TimeReportContext context)
+        public CreateActivityCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }

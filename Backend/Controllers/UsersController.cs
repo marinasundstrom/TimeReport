@@ -4,8 +4,9 @@ using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
+using TimeReport.Application.Common.Interfaces;
 using TimeReport.Application.Users;
-using TimeReport.Data;
+using TimeReport.Infrastructure;
 
 namespace TimeReport.Controllers;
 
@@ -14,9 +15,9 @@ namespace TimeReport.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly TimeReportContext context;
+    private readonly ITimeReportContext context;
 
-    public UsersController(IMediator mediator, TimeReportContext context)
+    public UsersController(IMediator mediator, ITimeReportContext context)
     {
         _mediator = mediator;
         this.context = context;
