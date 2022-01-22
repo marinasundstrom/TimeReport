@@ -53,8 +53,10 @@
     [Parameter]
     public int Week { get; set; }
 
+    [Required]
     public ProjectDto? Project { get; set; }
 
+    [Required]
     public ActivityDto? Activity { get; set; }
 
     protected override async Task OnInitializedAsync()
