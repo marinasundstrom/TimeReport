@@ -11,6 +11,7 @@ using TimeReport.Application.Projects;
 using TimeReport.Application.Users;
 using TimeReport.Application.Users.Commands;
 using TimeReport.Application.Users.Queries;
+using TimeReport.Domain.Exceptions;
 
 namespace TimeReport.Controllers;
 
@@ -19,12 +20,10 @@ namespace TimeReport.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ITimeReportContext context;
 
-    public UsersController(IMediator mediator, ITimeReportContext context)
+    public UsersController(IMediator mediator)
     {
         _mediator = mediator;
-        this.context = context;
     }
 
     [HttpGet]
@@ -61,7 +60,7 @@ public class UsersController : ControllerBase
         }
         catch (Exception)
         {
-            return NotFound();
+            throw;
         }
     }
 
@@ -75,7 +74,7 @@ public class UsersController : ControllerBase
 
             return Ok(user);
         }
-        catch (Exception)
+        catch (UserNotFoundException)
         {
             return NotFound();
         }
@@ -91,7 +90,7 @@ public class UsersController : ControllerBase
 
             return Ok();
         }
-        catch (Exception)
+        catch (UserNotFoundException)
         {
             return NotFound();
         }
@@ -101,88 +100,27 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10, string? sortBy = null, Application.Common.Models.SortDirection? sortDirection = null)
     {
-        var query = context.ProjectMemberships
-            .OrderBy(p => p.Created)
-            .Where(x => x.User.Id == id);
-
-        var totalItems = await query.CountAsync();
-
-        if (sortBy is not null)
+        try
         {
-            query = query.OrderBy(sortBy, sortDirection == Application.Common.Models.SortDirection.Desc ? TimeReport.Application.SortDirection.Descending : TimeReport.Application.SortDirection.Ascending);
+            return Ok(await _mediator.Send(new GetUserProjectMembershipsQuery(id, page, pageSize, sortBy, sortDirection)));
         }
-
-        var projectMemberships = await query
-            .Include(m => m.Project)
-            .Include(m => m.User)
-            .Skip(pageSize * page)
-            .Take(pageSize)
-            .AsSplitQuery()
-            .ToArrayAsync();
-
-        var dtos = projectMemberships
-            .DistinctBy(x => x.Project) // Temp
-            .Select(m => new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
-            new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Email, m.User.Created, m.User.Deleted),
-            m.From, m.Thru));
-
-        return Ok(new ItemsResult<ProjectMembershipDto>(dtos, totalItems));
+        catch (UserNotFoundException)
+        {
+            return NotFound();
+        }
     }
 
     [HttpGet("{id}/Statistics")]
     public async Task<ActionResult<Data>> GetStatistics(string id, DateTime? from = null, DateTime? to = null)
     {
-        var projects = await context.Projects
-            .Include(x => x.Memberships)
-            .ThenInclude(x => x.User)
-            .Include(x => x.Activities)
-            .ThenInclude(x => x.Entries)
-            .ThenInclude(x => x.User)
-            .Where(x => x.Memberships.Any(x => x.User.Id == id))
-            .AsNoTracking()
-            .AsSplitQuery()
-            .ToListAsync();
-
-        List<DateTime> months = new();
-
-        const int monthSpan = 5;
-
-        DateTime lastDate = to?.Date ?? DateTime.Now.Date;
-        DateTime firstDate = from?.Date ?? lastDate.AddMonths(-monthSpan)!;
-
-        for (DateTime dt = firstDate; dt <= lastDate; dt = dt.AddMonths(1))
+        try
         {
-            months.Add(dt);
+            return Ok(await _mediator.Send(new GetUserStatisticsQuery(id, from, to)));
         }
-
-        List<Series> series = new();
-
-        var firstMonth = DateOnly.FromDateTime(firstDate);
-        var lastMonth = DateOnly.FromDateTime(lastDate);
-
-        foreach (var project in projects)
+        catch (UserNotFoundException)
         {
-            List<decimal> values = new();
-
-            foreach (var month in months)
-            {
-                var value = project.Activities.SelectMany(a => a.Entries)
-                    .Where(e => e.Date.Year == month.Year && e.Date.Month == month.Month)
-                    .Where(e => e.User.Id == id)
-                    .Select(x => x.Hours.GetValueOrDefault())
-                    .Sum();
-
-                values.Add((decimal)value);
-            }
-
-            series.Add(new Series(project.Name, values));
+            return NotFound();
         }
-
-        var dto = new Data(
-            months.Select(d => d.ToString("MMM yy")).ToArray(),
-            series);
-
-        return Ok(dto);
     }
 
     [HttpGet("{id}/Statistics/Summary")]
@@ -192,7 +130,7 @@ public class UsersController : ControllerBase
         {
             return Ok(await _mediator.Send(new GetUserStatisticsSummaryQuery(id)));
         }
-        catch (Exception)
+        catch (UserNotFoundException)
         {
             return NotFound();
         }

@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 using TimeReport.Application.Common.Interfaces;
+using TimeReport.Domain.Exceptions;
 
 namespace TimeReport.Application.Users.Queries;
 
@@ -34,7 +35,7 @@ public class GetUserQuery : IRequest<UserDto>
 
             if (user is null)
             {
-                throw new Exception();
+                return null!;
             }
 
             return new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted);

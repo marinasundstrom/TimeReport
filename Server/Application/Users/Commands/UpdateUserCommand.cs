@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 using TimeReport.Application.Common.Interfaces;
+using TimeReport.Domain.Exceptions;
 
 namespace TimeReport.Application.Users.Commands;
 
@@ -48,7 +49,7 @@ public class UpdateUserCommand : IRequest<UserDto>
 
             if (user is null)
             {
-                throw new Exception();
+                throw new UserNotFoundException(request.UserId);
             }
 
             user.FirstName = request.FirstName;
