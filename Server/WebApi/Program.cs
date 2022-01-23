@@ -36,6 +36,7 @@ services
 services.AddHttpContextAccessor();
 
 services.AddScoped<ICurrentUserService, CurrentUserService>();
+services.AddScoped<IBlobService, BlobService>();
 
 CultureInfo.DefaultThreadCurrentCulture = new CultureInfo("sv-SE");
 CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.CurrentCulture;

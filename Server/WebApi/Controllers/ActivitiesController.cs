@@ -16,12 +16,10 @@ namespace TimeReport.Controllers;
 public class ActivitiesController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ITimeReportContext context;
 
     public ActivitiesController(IMediator mediator, ITimeReportContext context)
     {
         _mediator = mediator;
-        this.context = context;
     }
 
     [HttpGet]
@@ -92,7 +90,6 @@ public class ActivitiesController : ControllerBase
             return NotFound();
         }
     }
-
 
     [HttpGet("{id}/Statistics/Summary")]
     public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id)

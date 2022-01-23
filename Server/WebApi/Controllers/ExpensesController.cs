@@ -21,14 +21,10 @@ namespace TimeReport.Controllers;
 public class ExpensesController : ControllerBase
 {
     private readonly IMediator _mediator;
-    private readonly ITimeReportContext context;
-    private readonly BlobServiceClient blobServiceClient;
 
-    public ExpensesController(IMediator mediator, ITimeReportContext context, BlobServiceClient blobServiceClient)
+    public ExpensesController(IMediator mediator)
     {
         _mediator = mediator;
-        this.context = context;
-        this.blobServiceClient = blobServiceClient;
     }
 
     [HttpGet]
@@ -74,36 +70,7 @@ public class ExpensesController : ControllerBase
     {
         var stream = file.OpenReadStream();
 
-        var expense = await context.Expenses
-            .Include(x => x.Project)
-            .AsSplitQuery()
-            .FirstOrDefaultAsync(x => x.Id == id);
-
-        if (expense is null)
-        {
-            return NotFound();
-        }
-
-        if (!string.IsNullOrEmpty(expense.Attachment))
-        {
-            return Problem(title: "Attachment could not be set", detail: "There is already an attachment for this expense.");
-        }
-
-        var blobContainerClient = blobServiceClient.GetBlobContainerClient("attachments");
-
-#if DEBUG
-        await blobContainerClient.CreateIfNotExistsAsync();
-#endif
-
-        var blobName = $"{expense.Id}-{file.FileName}";
-
-        var response = await blobContainerClient.UploadBlobAsync(blobName, file.OpenReadStream());
-
-        expense.Attachment = blobName;
-
-        await context.SaveChangesAsync();
-
-        var url = GetAttachmentUrl(expense.Attachment);
+        var url = await _mediator.Send(new UploadExpenseAttachmentCommand(id, file.FileName, stream));
 
         return Ok(url);
     }
