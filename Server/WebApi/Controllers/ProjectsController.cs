@@ -59,7 +59,7 @@ public class ProjectsController : ControllerBase
 
             return Ok(project);
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -75,7 +75,7 @@ public class ProjectsController : ControllerBase
 
             return Ok(project);
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -91,7 +91,7 @@ public class ProjectsController : ControllerBase
 
             return Ok();
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -104,7 +104,7 @@ public class ProjectsController : ControllerBase
         {
             return Ok(await _mediator.Send(new GetProjectStatisticsSummaryQuery(), cancellationToken));
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -117,7 +117,7 @@ public class ProjectsController : ControllerBase
         {
             return Ok(await _mediator.Send(new GetProjectStatisticsQuery(from, to), cancellationToken));
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -130,20 +130,20 @@ public class ProjectsController : ControllerBase
         {
             return Ok(await _mediator.Send(new GetProjectStatisticsSummaryForProjectQuery(id), cancellationToken));
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
     }
 
     [HttpGet("{id}/Statistics")]
-    public async Task<ActionResult<Data>> GetProjectStatistics(string id, DateTime? from = null, DateTime? to = null, CancellationToken cancellationToken  = default)
+    public async Task<ActionResult<Data>> GetProjectStatistics(string id, DateTime? from = null, DateTime? to = null, CancellationToken cancellationToken = default)
     {
         try
         {
             return Ok(await _mediator.Send(new GetProjectStatisticsForProjectQuery(id, from, to), cancellationToken));
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -157,7 +157,7 @@ public class ProjectsController : ControllerBase
         {
             return Ok(await _mediator.Send(new GetProjectMembershipsQuery(id, page, pageSize, sortBy, sortDirection), cancellationToken));
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -171,7 +171,7 @@ public class ProjectsController : ControllerBase
         {
             return Ok(await _mediator.Send(new GetProjectMembershipQuery(id, membershipId), cancellationToken));
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -185,7 +185,7 @@ public class ProjectsController : ControllerBase
         {
             return Ok(await _mediator.Send(new CreateProjectMembershipCommand(id, createProjectMembershipDto.UserId, createProjectMembershipDto.From, createProjectMembershipDto.Thru), cancellationToken));
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
@@ -199,11 +199,11 @@ public class ProjectsController : ControllerBase
         {
             return Ok(await _mediator.Send(new UpdateProjectMembershipCommand(id, membershipId, updateProjectMembershipDto.From, updateProjectMembershipDto.Thru), cancellationToken));
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
-        catch (ProjectMembershipNotFoundException exc)
+        catch (ProjectMembershipNotFoundException)
         {
             return NotFound();
         }
@@ -219,11 +219,11 @@ public class ProjectsController : ControllerBase
 
             return Ok();
         }
-        catch (ProjectNotFoundException exc)
+        catch (ProjectNotFoundException)
         {
             return NotFound();
         }
-        catch (ProjectMembershipNotFoundException exc)
+        catch (ProjectMembershipNotFoundException)
         {
             return NotFound();
         }

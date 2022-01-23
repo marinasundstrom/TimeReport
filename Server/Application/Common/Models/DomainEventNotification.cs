@@ -1,8 +1,8 @@
 ﻿using System;
 
-using TimeReport.Domain.Common;
-
 using MediatR;
+
+using TimeReport.Domain.Common;
 
 namespace TimeReport.Application.Common.Models;
 

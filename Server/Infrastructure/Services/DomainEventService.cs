@@ -1,12 +1,12 @@
 ﻿using System;
 
-using TimeReport.Application.Common.Interfaces;
-using TimeReport.Application.Common.Models;
-using TimeReport.Domain.Common;
-
 using MediatR;
 
 using Microsoft.Extensions.Logging;
+
+using TimeReport.Application.Common.Interfaces;
+using TimeReport.Application.Common.Models;
+using TimeReport.Domain.Common;
 
 namespace TimeReport.Infrastructure.Services;
 

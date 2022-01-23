@@ -72,7 +72,7 @@ public class TimeSheetsController : ControllerBase
             var newDto = await _mediator.Send(new CreateEntryCommand(timeSheetId, dto.ProjectId, dto.ActivityId, DateOnly.FromDateTime(dto.Date), dto.Hours, dto.Description), cancellationToken);
             return Ok(newDto);
         }
-        catch(TimeSheetNotFoundException exc)
+        catch (TimeSheetNotFoundException exc)
         {
             return Problem(title: exc.Title, detail: exc.Details, statusCode: StatusCodes.Status400BadRequest);
         }
@@ -150,7 +150,7 @@ public class TimeSheetsController : ControllerBase
     public async Task<ActionResult<EntryDto>> UpdateEntryDetails([FromRoute] string timeSheetId, [FromRoute] string entryId, UpdateEntryDetailsDto dto, CancellationToken cancellationToken)
     {
         try
-        { 
+        {
             var newDto = await _mediator.Send(new UpdateEntryDetailsCommand(timeSheetId, entryId, dto.Description), cancellationToken);
             return Ok(newDto);
         }

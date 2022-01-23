@@ -55,7 +55,7 @@ public class UploadExpenseAttachmentCommand : IRequest<string?>
 
             var blobName = $"{expense.Id}-{request.Name}";
 
-            await _blobService.UploadBloadAsync(blobName, request.Stream); 
+            await _blobService.UploadBloadAsync(blobName, request.Stream);
 
             expense.Attachment = blobName;
 

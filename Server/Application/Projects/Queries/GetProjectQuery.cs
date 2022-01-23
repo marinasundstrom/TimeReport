@@ -32,7 +32,7 @@ public class GetProjectQuery : IRequest<ProjectDto?>
                .AsSplitQuery()
                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
 
-            if(project is null)
+            if (project is null)
             {
                 return null;
             }

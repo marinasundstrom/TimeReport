@@ -26,4 +26,3 @@ class BlobService : IBlobService
         var response = await blobContainerClient.UploadBlobAsync(name, stream);
     }
 }
-

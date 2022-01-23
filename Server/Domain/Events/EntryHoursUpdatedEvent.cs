@@ -25,4 +25,3 @@ public class EntryHoursUpdatedEvent : DomainEvent
 
     public double? Hours { get; }
 }
-
