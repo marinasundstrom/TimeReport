@@ -168,10 +168,9 @@ public class ProjectsController : ControllerBase
             foreach (var month in months)
             {
                 var value = project.Activities.SelectMany(a => a.Entries)
-                    .Where(e => e.Date.Month > firstMonth.Month)
-                    .Where(e => e.Date.Month <= lastMonth.Month)
                     .Where(e => e.Date.Year == month.Year && e.Date.Month == month.Month)
-                    .Sum(x => x.Hours.GetValueOrDefault());
+                    .Select(x => x.Hours.GetValueOrDefault())
+                    .Sum();
 
                 values.Add((decimal)value);
             }
@@ -238,10 +237,9 @@ public class ProjectsController : ControllerBase
             foreach (var month in months)
             {
                 var value = activity.Entries
-                    .Where(e => e.Date.Month > firstMonth.Month)
-                    .Where(e => e.Date.Month <= lastMonth.Month)
                     .Where(e => e.Date.Year == month.Year && e.Date.Month == month.Month)
-                    .Sum(x => x.Hours.GetValueOrDefault());
+                    .Select(x => x.Hours.GetValueOrDefault())
+                    .Sum();
 
                 values.Add((decimal)value);
             }
