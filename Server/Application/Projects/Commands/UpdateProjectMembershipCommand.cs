@@ -43,7 +43,7 @@ public class UpdateProjectMembershipCommand : IRequest<ProjectMembershipDto>
                 .Include(p => p.Memberships)
                 .ThenInclude(m => m.User)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
+                .FirstOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
 
             if (project is null)
             {
@@ -60,7 +60,7 @@ public class UpdateProjectMembershipCommand : IRequest<ProjectMembershipDto>
             m.From = request.From;
             m.Thru = request.Thru;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
                 new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Email, m.User.Created, m.User.Deleted),

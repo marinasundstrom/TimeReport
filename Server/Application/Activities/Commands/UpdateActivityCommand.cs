@@ -37,7 +37,7 @@ public class UpdateActivityCommand : IRequest<ActivityDto>
             var activity = await _context.Activities
                 .Include(x => x.Project)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ActivityId);
+                .FirstOrDefaultAsync(x => x.Id == request.ActivityId, cancellationToken);
 
             if (activity is null)
             {
@@ -48,7 +48,7 @@ public class UpdateActivityCommand : IRequest<ActivityDto>
             activity.Description = request.Description;
             activity.HourlyRate = request.HourlyRate;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
         }

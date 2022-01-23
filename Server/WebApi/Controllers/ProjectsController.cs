@@ -30,16 +30,16 @@ public class ProjectsController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ProjectDto>>> GetProjects(string? userId = null, int page = 0, int pageSize = 10, string? searchString = null, string? sortBy = null, Application.Common.Models.SortDirection? sortDirection = null)
+    public async Task<ActionResult<ItemsResult<ProjectDto>>> GetProjects(string? userId = null, int page = 0, int pageSize = 10, string? searchString = null, string? sortBy = null, Application.Common.Models.SortDirection? sortDirection = null, CancellationToken cancellationToken = default)
     {
-        return Ok(await _mediator.Send(new GetProjectsQuery(page, pageSize, searchString, sortBy, sortDirection)));
+        return Ok(await _mediator.Send(new GetProjectsQuery(page, pageSize, searchString, sortBy, sortDirection), cancellationToken));
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProjectDto>> GetProject(string id)
+    public async Task<ActionResult<ProjectDto>> GetProject(string id, CancellationToken cancellationToken)
     {
-        var project = await _mediator.Send(new GetProjectQuery(id));
+        var project = await _mediator.Send(new GetProjectQuery(id), cancellationToken);
 
         if (project is null)
         {
@@ -51,11 +51,11 @@ public class ProjectsController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProjectDto>> CreateProject(CreateProjectDto createProjectDto)
+    public async Task<ActionResult<ProjectDto>> CreateProject(CreateProjectDto createProjectDto, CancellationToken cancellationToken)
     {
         try
         {
-            var project = await _mediator.Send(new CreateProjectCommand(createProjectDto.Name, createProjectDto.Description));
+            var project = await _mediator.Send(new CreateProjectCommand(createProjectDto.Name, createProjectDto.Description), cancellationToken);
 
             return Ok(project);
         }
@@ -67,11 +67,11 @@ public class ProjectsController : ControllerBase
 
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProjectDto>> UpdateProject(string id, UpdateProjectDto updateProjectDto)
+    public async Task<ActionResult<ProjectDto>> UpdateProject(string id, UpdateProjectDto updateProjectDto, CancellationToken cancellationToken)
     {
         try
         {
-            var project = await _mediator.Send(new UpdateProjectCommand(id, updateProjectDto.Name, updateProjectDto.Description));
+            var project = await _mediator.Send(new UpdateProjectCommand(id, updateProjectDto.Name, updateProjectDto.Description), cancellationToken);
 
             return Ok(project);
         }
@@ -83,11 +83,11 @@ public class ProjectsController : ControllerBase
 
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> DeleteProject(string id)
+    public async Task<ActionResult> DeleteProject(string id, CancellationToken cancellationToken)
     {
         try
         {
-            await _mediator.Send(new DeleteProjectCommand(id));
+            await _mediator.Send(new DeleteProjectCommand(id), cancellationToken);
 
             return Ok();
         }
@@ -98,11 +98,11 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet("Statistics/Summary")]
-    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary()
+    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(CancellationToken cancellationToken)
     {
         try
         {
-            return Ok(await _mediator.Send(new GetProjectStatisticsSummaryQuery()));
+            return Ok(await _mediator.Send(new GetProjectStatisticsSummaryQuery(), cancellationToken));
         }
         catch (ProjectNotFoundException exc)
         {
@@ -111,11 +111,11 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet("Statistics")]
-    public async Task<ActionResult<Data>> GetStatistics(DateTime? from = null, DateTime? to = null)
+    public async Task<ActionResult<Data>> GetStatistics(DateTime? from = null, DateTime? to = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            return Ok(await _mediator.Send(new GetProjectStatisticsQuery(from, to)));
+            return Ok(await _mediator.Send(new GetProjectStatisticsQuery(from, to), cancellationToken));
         }
         catch (ProjectNotFoundException exc)
         {
@@ -124,11 +124,11 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet("{id}/Statistics/Summary")]
-    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id)
+    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id, CancellationToken cancellationToken)
     {
         try
         {
-            return Ok(await _mediator.Send(new GetProjectStatisticsSummaryForProjectQuery(id)));
+            return Ok(await _mediator.Send(new GetProjectStatisticsSummaryForProjectQuery(id), cancellationToken));
         }
         catch (ProjectNotFoundException exc)
         {
@@ -137,11 +137,11 @@ public class ProjectsController : ControllerBase
     }
 
     [HttpGet("{id}/Statistics")]
-    public async Task<ActionResult<Data>> GetProjectStatistics(string id, DateTime? from = null, DateTime? to = null)
+    public async Task<ActionResult<Data>> GetProjectStatistics(string id, DateTime? from = null, DateTime? to = null, CancellationToken cancellationToken  = default)
     {
         try
         {
-            return Ok(await _mediator.Send(new GetProjectStatisticsForProjectQuery(id, from, to)));
+            return Ok(await _mediator.Send(new GetProjectStatisticsForProjectQuery(id, from, to), cancellationToken));
         }
         catch (ProjectNotFoundException exc)
         {
@@ -151,11 +151,11 @@ public class ProjectsController : ControllerBase
 
     [HttpGet("{id}/Memberships")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10, string? sortBy = null, TimeReport.Application.Common.Models.SortDirection? sortDirection = null)
+    public async Task<ActionResult<ItemsResult<ProjectMembershipDto>>> GetProjectMemberships(string id, int page = 0, int pageSize = 10, string? sortBy = null, TimeReport.Application.Common.Models.SortDirection? sortDirection = null, CancellationToken cancellationToken = default)
     {
         try
         {
-            return Ok(await _mediator.Send(new GetProjectMembershipsQuery(id, page, pageSize, sortBy, sortDirection)));
+            return Ok(await _mediator.Send(new GetProjectMembershipsQuery(id, page, pageSize, sortBy, sortDirection), cancellationToken));
         }
         catch (ProjectNotFoundException exc)
         {
@@ -165,11 +165,11 @@ public class ProjectsController : ControllerBase
 
     [HttpGet("{id}/Memberships/{membershipId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProjectMembershipDto>> GetProjectMembership(string id, string membershipId)
+    public async Task<ActionResult<ProjectMembershipDto>> GetProjectMembership(string id, string membershipId, CancellationToken cancellationToken)
     {
         try
         {
-            return Ok(await _mediator.Send(new GetProjectMembershipQuery(id, membershipId)));
+            return Ok(await _mediator.Send(new GetProjectMembershipQuery(id, membershipId), cancellationToken));
         }
         catch (ProjectNotFoundException exc)
         {
@@ -179,11 +179,11 @@ public class ProjectsController : ControllerBase
 
     [HttpPost("{id}/Memberships")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProjectMembershipDto>> CreateProjectMembership(string id, CreateProjectMembershipDto createProjectMembershipDto)
+    public async Task<ActionResult<ProjectMembershipDto>> CreateProjectMembership(string id, CreateProjectMembershipDto createProjectMembershipDto, CancellationToken cancellationToken)
     {
         try
         {
-            return Ok(await _mediator.Send(new CreateProjectMembershipCommand(id, createProjectMembershipDto.UserId, createProjectMembershipDto.From, createProjectMembershipDto.Thru)));
+            return Ok(await _mediator.Send(new CreateProjectMembershipCommand(id, createProjectMembershipDto.UserId, createProjectMembershipDto.From, createProjectMembershipDto.Thru), cancellationToken));
         }
         catch (ProjectNotFoundException exc)
         {
@@ -193,11 +193,11 @@ public class ProjectsController : ControllerBase
 
     [HttpPut("{id}/Memberships/{membershipId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ProjectMembershipDto>> UpdateProjectMembership(string id, string membershipId, UpdateProjectMembershipDto updateProjectMembershipDto)
+    public async Task<ActionResult<ProjectMembershipDto>> UpdateProjectMembership(string id, string membershipId, UpdateProjectMembershipDto updateProjectMembershipDto, CancellationToken cancellationToken)
     {
         try
         {
-            return Ok(await _mediator.Send(new UpdateProjectMembershipCommand(id, membershipId, updateProjectMembershipDto.From, updateProjectMembershipDto.Thru)));
+            return Ok(await _mediator.Send(new UpdateProjectMembershipCommand(id, membershipId, updateProjectMembershipDto.From, updateProjectMembershipDto.Thru), cancellationToken));
         }
         catch (ProjectNotFoundException exc)
         {
@@ -211,11 +211,11 @@ public class ProjectsController : ControllerBase
 
     [HttpDelete("{id}/Memberships/{membershipId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> DeleteProjectMembership(string id, string membershipId)
+    public async Task<ActionResult> DeleteProjectMembership(string id, string membershipId, CancellationToken cancellationToken)
     {
         try
         {
-            await _mediator.Send(new DeleteProjectMembershipCommand(id, membershipId));
+            await _mediator.Send(new DeleteProjectMembershipCommand(id, membershipId), cancellationToken);
 
             return Ok();
         }

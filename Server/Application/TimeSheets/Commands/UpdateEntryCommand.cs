@@ -53,7 +53,7 @@ public class UpdateEntryCommand : IRequest<EntryDto>
                         .ThenInclude(x => x.Activity)
                         .ThenInclude(x => x.Project)
                         .AsSplitQuery()
-                        .FirstAsync(x => x.Id == request.TimeSheetId);
+                        .FirstAsync(x => x.Id == request.TimeSheetId, cancellationToken);
 
             if (timeSheet is null)
             {
@@ -92,7 +92,7 @@ public class UpdateEntryCommand : IRequest<EntryDto>
                 throw new WeekHoursExceedPermittedWeeklyWorkingHoursException(request.TimeSheetId);
             }
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             var e = entry;
 

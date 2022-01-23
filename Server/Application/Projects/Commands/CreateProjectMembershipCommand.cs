@@ -44,7 +44,7 @@ public partial class CreateProjectMembershipCommand : IRequest<ProjectMembership
                         .Include(p => p.Memberships)
                         .ThenInclude(m => m.User)
                         .AsSplitQuery()
-                        .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
+                        .FirstOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
 
             if (project is null)
             {
@@ -52,7 +52,7 @@ public partial class CreateProjectMembershipCommand : IRequest<ProjectMembership
             }
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(x => x.Id == request.UserId);
+                .FirstOrDefaultAsync(x => x.Id == request.UserId, cancellationToken);
 
             if (user is null)
             {
@@ -77,7 +77,7 @@ public partial class CreateProjectMembershipCommand : IRequest<ProjectMembership
 
             _context.ProjectMemberships.Add(m);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),
                 new UserDto(m.User.Id, m.User.FirstName, m.User.LastName, m.User.DisplayName, m.User.SSN, m.User.Email, m.User.Created, m.User.Deleted),

@@ -51,7 +51,7 @@ public class UpdateEntryDetailsCommand : IRequest<EntryDto>
              .ThenInclude(x => x.Activity)
              .ThenInclude(x => x.Project)
              .AsSplitQuery()
-             .FirstAsync(x => x.Id == request.TimeSheetId);
+             .FirstAsync(x => x.Id == request.TimeSheetId, cancellationToken);
 
             if (timeSheet is null)
             {
@@ -77,7 +77,7 @@ public class UpdateEntryDetailsCommand : IRequest<EntryDto>
 
             entry.Description = request.Description;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             var e = entry;
 

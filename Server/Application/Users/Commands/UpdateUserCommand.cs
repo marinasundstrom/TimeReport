@@ -45,7 +45,7 @@ public class UpdateUserCommand : IRequest<UserDto>
         {
             var user = await _context.Users
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.UserId);
+                .FirstOrDefaultAsync(x => x.Id == request.UserId, cancellationToken);
 
             if (user is null)
             {
@@ -58,7 +58,7 @@ public class UpdateUserCommand : IRequest<UserDto>
             user.SSN = request.Ssn;
             user.Email = request.Email;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted);
         }

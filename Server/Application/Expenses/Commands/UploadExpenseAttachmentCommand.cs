@@ -41,7 +41,7 @@ public class UploadExpenseAttachmentCommand : IRequest<string?>
             var expense = await _context.Expenses
                 .Include(x => x.Project)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId);
+                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId, cancellationToken);
 
             if (expense is null)
             {
@@ -59,7 +59,7 @@ public class UploadExpenseAttachmentCommand : IRequest<string?>
 
             expense.Attachment = blobName;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return GetAttachmentUrl(expense.Attachment);
         }

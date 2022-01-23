@@ -60,7 +60,7 @@ public class GetActivitiesQuery : IRequest<ItemsResult<ActivityDto>>
                 query = query.Where(activity => activity.Name.ToLower().Contains(request.SearchString.ToLower()) || activity.Description.ToLower().Contains(request.SearchString.ToLower()));
             }
 
-            var totalItems = await query.CountAsync();
+            var totalItems = await query.CountAsync(cancellationToken);
 
             if (request.SortBy is not null)
             {
@@ -70,7 +70,7 @@ public class GetActivitiesQuery : IRequest<ItemsResult<ActivityDto>>
             var activities = await query
                 .Skip(request.PageSize * request.Page)
                 .Take(request.PageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var dtos = activities.Select(activity => new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description)));
 

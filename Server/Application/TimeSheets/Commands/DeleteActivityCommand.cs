@@ -41,7 +41,7 @@ public class DeleteActivityCommand : IRequest
                         .ThenInclude(x => x.Activity)
                         .ThenInclude(x => x.Project)
                         .AsSplitQuery()
-                        .FirstAsync(x => x.Id == request.TimeSheetId);
+                        .FirstAsync(x => x.Id == request.TimeSheetId, cancellationToken);
 
             if (timeSheet is null)
             {
@@ -53,7 +53,7 @@ public class DeleteActivityCommand : IRequest
                 throw new TimeSheetClosedException(request.TimeSheetId);
             }
 
-            var activity = await _context!.Activities.FirstOrDefaultAsync(x => x.Id == request.ActivityId);
+            var activity = await _context!.Activities.FirstOrDefaultAsync(x => x.Id == request.ActivityId, cancellationToken);
 
             if (activity is null)
             {
@@ -70,7 +70,7 @@ public class DeleteActivityCommand : IRequest
             if (entries.All(e => e.Status == EntryStatus.Unlocked))
             {
                 var timeSheetActivity = await _context.TimeSheetActivities
-                    .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id);
+                    .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id, cancellationToken);
 
                 if (timeSheetActivity is not null)
                 {
@@ -78,7 +78,7 @@ public class DeleteActivityCommand : IRequest
                 }
             }
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return Unit.Value;
         }

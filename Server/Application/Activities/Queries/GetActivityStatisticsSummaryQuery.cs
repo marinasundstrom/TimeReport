@@ -33,7 +33,7 @@ public class GetActivityStatisticsSummaryQuery : IRequest<StatisticsSummary>
                .ThenInclude(x => x.User)
                .AsSplitQuery()
                .AsNoTracking()
-               .FirstOrDefaultAsync(x => x.Id == request.ActivityId);
+               .FirstOrDefaultAsync(x => x.Id == request.ActivityId, cancellationToken);
 
             if (activity is null)
             {

@@ -73,7 +73,7 @@ public class GetTimeSheetsQuery : IRequest<ItemsResult<TimeSheetDto>>
                 query = query.Where(timeSheet => timeSheet.Id.ToLower().Contains(request.SearchString.ToLower()));
             }
 
-            var totalItems = await query.CountAsync();
+            var totalItems = await query.CountAsync(cancellationToken);
 
             if (request.SortBy is not null)
             {
@@ -83,11 +83,11 @@ public class GetTimeSheetsQuery : IRequest<ItemsResult<TimeSheetDto>>
             var timeSheets = await query
                 .Skip(request.PageSize * request.Page)
                 .Take(request.PageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var monthInfo = await _context.MonthEntryGroups
                 .Where(x => x.Status == EntryStatus.Locked)
-                .ToArrayAsync();
+                .ToArrayAsync(cancellationToken);
 
             return new ItemsResult<TimeSheetDto>(
                 timeSheets.Select(timeSheet =>

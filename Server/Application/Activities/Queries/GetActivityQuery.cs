@@ -32,7 +32,7 @@ public class GetActivityQuery : IRequest<ActivityDto>
                .Include(x => x.Project)
                .AsNoTracking()
                .AsSplitQuery()
-               .FirstOrDefaultAsync(x => x.Id == request.ActivityId);
+               .FirstOrDefaultAsync(x => x.Id == request.ActivityId, cancellationToken);
 
             if (activity is null)
             {

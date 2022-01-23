@@ -37,7 +37,7 @@ public class CreateActivityCommand : IRequest<ActivityDto>
         {
             var project = await _context.Projects
                .AsSplitQuery()
-               .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
+               .FirstOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
 
             if (project is null)
             {
@@ -55,7 +55,7 @@ public class CreateActivityCommand : IRequest<ActivityDto>
 
             _context.Activities.Add(activity);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new ActivityDto(activity.Id, activity.Name, activity.Description, activity.HourlyRate, new ProjectDto(activity.Project.Id, activity.Project.Name, activity.Project.Description));
         }

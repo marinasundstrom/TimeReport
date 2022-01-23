@@ -34,7 +34,7 @@ public class GetExpenseQuery : IRequest<ExpenseDto>
                .Include(x => x.Project)
                .AsNoTracking()
                .AsSplitQuery()
-               .FirstOrDefaultAsync(x => x.Id == request.ExpenseId);
+               .FirstOrDefaultAsync(x => x.Id == request.ExpenseId, cancellationToken);
 
             if (expense is null)
             {

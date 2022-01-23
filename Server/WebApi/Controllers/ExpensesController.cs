@@ -29,16 +29,16 @@ public class ExpensesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ExpenseDto>>> GetExpenses(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, Application.Common.Models.SortDirection? sortDirection = null)
+    public async Task<ActionResult<ItemsResult<ExpenseDto>>> GetExpenses(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, Application.Common.Models.SortDirection? sortDirection = null, CancellationToken cancellationToken = default)
     {
         return Ok(await _mediator.Send(new GetExpensesQuery(page, pageSize, projectId, searchString, sortBy, sortDirection)));
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ExpenseDto>> GetExpense(string id)
+    public async Task<ActionResult<ExpenseDto>> GetExpense(string id, CancellationToken cancellationToken)
     {
-        var expense = await _mediator.Send(new GetExpenseQuery(id));
+        var expense = await _mediator.Send(new GetExpenseQuery(id), cancellationToken);
 
         if (expense is null)
         {
@@ -50,11 +50,11 @@ public class ExpensesController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ExpenseDto>> CreateExpense(string projectId, CreateExpenseDto createExpenseDto)
+    public async Task<ActionResult<ExpenseDto>> CreateExpense(string projectId, CreateExpenseDto createExpenseDto, CancellationToken cancellationToken)
     {
         try
         {
-            var activity = await _mediator.Send(new CreateExpenseCommand(projectId, createExpenseDto.Date, createExpenseDto.Amount, createExpenseDto.Description));
+            var activity = await _mediator.Send(new CreateExpenseCommand(projectId, createExpenseDto.Date, createExpenseDto.Amount, createExpenseDto.Description), cancellationToken);
 
             return Ok(activity);
         }
@@ -66,22 +66,22 @@ public class ExpensesController : ControllerBase
 
     [HttpPost("{id}/Attachment")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-    public async Task<ActionResult> UploadAttachment([FromRoute] string id, IFormFile file)
+    public async Task<ActionResult> UploadAttachment([FromRoute] string id, IFormFile file, CancellationToken cancellationToken)
     {
         var stream = file.OpenReadStream();
 
-        var url = await _mediator.Send(new UploadExpenseAttachmentCommand(id, file.FileName, stream));
+        var url = await _mediator.Send(new UploadExpenseAttachmentCommand(id, file.FileName, stream), cancellationToken);
 
         return Ok(url);
     }
 
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ExpenseDto>> UpdateExpense(string id, UpdateExpenseDto updateExpenseDto)
+    public async Task<ActionResult<ExpenseDto>> UpdateExpense(string id, UpdateExpenseDto updateExpenseDto, CancellationToken cancellationToken)
     {
         try
         {
-            var activity = await _mediator.Send(new UpdateExpenseCommand(id, updateExpenseDto.Date, updateExpenseDto.Amount, updateExpenseDto.Description));
+            var activity = await _mediator.Send(new UpdateExpenseCommand(id, updateExpenseDto.Date, updateExpenseDto.Amount, updateExpenseDto.Description), cancellationToken);
 
             return Ok(activity);
         }
@@ -93,11 +93,11 @@ public class ExpensesController : ControllerBase
 
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> DeleteExpense(string id)
+    public async Task<ActionResult> DeleteExpense(string id, CancellationToken cancellationToken)
     {
         try
         {
-            var activity = await _mediator.Send(new DeleteExpenseCommand(id));
+            var activity = await _mediator.Send(new DeleteExpenseCommand(id), cancellationToken);
 
             return Ok();
         }

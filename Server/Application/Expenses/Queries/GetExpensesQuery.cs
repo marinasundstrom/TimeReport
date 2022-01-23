@@ -62,7 +62,7 @@ public class GetExpensesQuery : IRequest<ItemsResult<ExpenseDto>>
                 query = query.Where(expense => expense.Description.ToLower().Contains(request.SearchString.ToLower()));
             }
 
-            var totalItems = await query.CountAsync();
+            var totalItems = await query.CountAsync(cancellationToken);
 
             if (request.SortBy is not null)
             {
@@ -72,7 +72,7 @@ public class GetExpensesQuery : IRequest<ItemsResult<ExpenseDto>>
             var expenses = await query
                 .Skip(request.PageSize * request.Page)
                 .Take(request.PageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             var dtos = expenses.Select(expense => new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description)));
 

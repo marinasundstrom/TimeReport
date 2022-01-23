@@ -36,7 +36,7 @@ public class UpdateProjectCommand : IRequest<ProjectDto>
         {
             var project = await _context.Projects
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
+                .FirstOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
 
             if (project is null)
             {
@@ -46,7 +46,7 @@ public class UpdateProjectCommand : IRequest<ProjectDto>
             project.Name = request.Name;
             project.Description = request.Description;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new ProjectDto(project.Id, project.Name, project.Description);
         }

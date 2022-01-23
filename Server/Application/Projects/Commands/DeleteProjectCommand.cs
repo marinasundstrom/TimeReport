@@ -30,7 +30,7 @@ public class DeleteProjectCommand : IRequest
         {
             var project = await _context.Projects
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
+                .FirstOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
 
             if (project is null)
             {
@@ -39,7 +39,7 @@ public class DeleteProjectCommand : IRequest
 
             _context.Projects.Remove(project);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return Unit.Value;
         }

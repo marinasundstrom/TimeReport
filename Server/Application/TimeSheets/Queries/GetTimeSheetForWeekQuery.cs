@@ -54,7 +54,7 @@ public class GetTimeSheetForWeekQuery : IRequest<TimeSheetDto?>
                 query = query.Where(x => x.User.Id == request.UserId);
             }
 
-            var timeSheet = await query.FirstOrDefaultAsync(x => x.Year == request.Year && x.Week == request.Week);
+            var timeSheet = await query.FirstOrDefaultAsync(x => x.Year == request.Year && x.Week == request.Week, cancellationToken);
 
             if (timeSheet is null)
             {
@@ -62,11 +62,11 @@ public class GetTimeSheetForWeekQuery : IRequest<TimeSheetDto?>
 
                 if (request.UserId is not null)
                 {
-                    user = await _context.Users.FirstAsync(x => x.Id == request.UserId);
+                    user = await _context.Users.FirstAsync(x => x.Id == request.UserId, cancellationToken);
                 }
                 else
                 {
-                    user = await _context.Users.FirstOrDefaultAsync();
+                    user = await _context.Users.FirstOrDefaultAsync(cancellationToken);
                 }
 
                 var startDate = System.Globalization.ISOWeek.ToDateTime(request.Year, request.Week, DayOfWeek.Monday);
@@ -83,7 +83,7 @@ public class GetTimeSheetForWeekQuery : IRequest<TimeSheetDto?>
 
                 _context.TimeSheets.Add(timeSheet);
 
-                await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync(cancellationToken);
             }
 
             var activities = timeSheet.Activities
@@ -95,7 +95,7 @@ public class GetTimeSheetForWeekQuery : IRequest<TimeSheetDto?>
             var monthInfo = await _context.MonthEntryGroups
                 .Where(x => x.User.Id == timeSheet.User.Id)
                 .Where(x => x.Month == timeSheet.From.Month || x.Month == timeSheet.To.Month)
-                .ToArrayAsync();
+                .ToArrayAsync(cancellationToken);
 
             return new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
                 activities, monthInfo.Select(x => new MonthInfoDto(x.Month, x.Status == EntryStatus.Locked)));

@@ -59,14 +59,14 @@ public class GetUsersQuery : IRequest<ItemsResult<UserDto>>
                 || p.Email.ToLower().Contains(request.SearchString.ToLower()));
             }
 
-            var totalItems = await query.CountAsync();
+            var totalItems = await query.CountAsync(cancellationToken);
 
             if (request.SortBy is not null)
             {
                 query = query.OrderBy(request.SortBy, request.SortDirection == TimeReport.Application.Common.Models.SortDirection.Desc ? TimeReport.Application.SortDirection.Descending : TimeReport.Application.SortDirection.Ascending);
             }
 
-            var users = await query.ToListAsync();
+            var users = await query.ToListAsync(cancellationToken);
 
             var dtos = users.Select(user => new UserDto(user.Id, user.FirstName, user.LastName, user.DisplayName, user.SSN, user.Email, user.Created, user.Deleted));
 

@@ -35,7 +35,7 @@ public class DeleteProjectMembershipCommand : IRequest
                 .Include(p => p.Memberships)
                 .ThenInclude(m => m.User)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
+                .FirstOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
 
             if (project is null)
             {
@@ -51,7 +51,7 @@ public class DeleteProjectMembershipCommand : IRequest
 
             _context.ProjectMemberships.Remove(m);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return Unit.Value;
         }

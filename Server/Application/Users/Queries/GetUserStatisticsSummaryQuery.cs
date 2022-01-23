@@ -32,7 +32,7 @@ public class GetUserStatisticsSummaryQuery : IRequest<StatisticsSummary>
             var user = await _context.Users
                        .AsNoTracking()
                        .AsSplitQuery()
-                       .FirstOrDefaultAsync(x => x.Id == request.UserId);
+                       .FirstOrDefaultAsync(x => x.Id == request.UserId, cancellationToken);
 
             if (user is null)
             {
@@ -44,7 +44,7 @@ public class GetUserStatisticsSummaryQuery : IRequest<StatisticsSummary>
                 .Where(x => x.User.Id == request.UserId)
                 .AsSplitQuery()
                 .AsNoTracking()
-                .ToArrayAsync();
+                .ToArrayAsync(cancellationToken);
 
             var totalHours = entries
                 .Sum(p => p.Hours.GetValueOrDefault());

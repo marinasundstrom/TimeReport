@@ -43,7 +43,7 @@ public class GetUserStatisticsQuery : IRequest<Data>
                 .Where(x => x.Memberships.Any(x => x.User.Id == request.UserId))
                 .AsNoTracking()
                 .AsSplitQuery()
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             List<DateTime> months = new();
 

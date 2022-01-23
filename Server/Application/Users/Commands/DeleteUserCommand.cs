@@ -30,7 +30,7 @@ public class DeleteUserCommand : IRequest
         {
             var user = await _context.Users
                         .AsSplitQuery()
-                        .FirstOrDefaultAsync(x => x.Id == request.UserId);
+                        .FirstOrDefaultAsync(x => x.Id == request.UserId, cancellationToken);
 
             if (user is null)
             {
@@ -39,7 +39,7 @@ public class DeleteUserCommand : IRequest
 
             _context.Users.Remove(user);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return Unit.Value;
         }

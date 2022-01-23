@@ -44,7 +44,7 @@ public class GetTimeSheetQuery : IRequest<TimeSheetDto?>
                 .ThenInclude(x => x.Project)
                 .AsNoTracking()
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.TimeSheetId);
+                .FirstOrDefaultAsync(x => x.Id == request.TimeSheetId, cancellationToken);
 
             if (timeSheet is null)
             {
@@ -59,7 +59,7 @@ public class GetTimeSheetQuery : IRequest<TimeSheetDto?>
             var monthInfo = await _context.MonthEntryGroups
                 .Where(x => x.User.Id == timeSheet.User.Id)
                 .Where(x => x.Month == timeSheet.From.Month || x.Month == timeSheet.To.Month)
-                .ToArrayAsync();
+                .ToArrayAsync(cancellationToken);
 
             return new TimeSheetDto(timeSheet.Id, timeSheet.Year, timeSheet.Week, timeSheet.From, timeSheet.To, (TimeSheetStatusDto)timeSheet.Status, new UserDto(timeSheet.User.Id, timeSheet.User.FirstName, timeSheet.User.LastName, timeSheet.User.DisplayName, timeSheet.User.SSN, timeSheet.User.Email, timeSheet.User.Created, timeSheet.User.Deleted),
                 activities, monthInfo.Select(x => new MonthInfoDto(x.Month, x.Status == EntryStatus.Locked)));

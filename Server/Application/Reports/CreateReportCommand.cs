@@ -55,7 +55,7 @@ public class CreateReportCommand : IRequest<Stream?>
                 query = query.Where(x => x.TimeSheet.User.Id == request.UserId);
             }
 
-            var entries = await query.ToListAsync();
+            var entries = await query.ToListAsync(cancellationToken);
 
             int row = 1;
 

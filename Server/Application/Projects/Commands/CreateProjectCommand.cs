@@ -38,7 +38,7 @@ public class CreateProjectCommand : IRequest<ProjectDto>
 
             _context.Projects.Add(project);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new ProjectDto(project.Id, project.Name, project.Description);
         }

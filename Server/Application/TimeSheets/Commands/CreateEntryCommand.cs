@@ -57,7 +57,7 @@ public class CreateEntryCommand : IRequest<EntryDto>
                .ThenInclude(x => x.Activity)
                .ThenInclude(x => x.Project)
                .AsSplitQuery()
-               .FirstAsync(x => x.Id == request.TimeSheetId);
+               .FirstAsync(x => x.Id == request.TimeSheetId, cancellationToken);
 
             if (timeSheet is null)
             {
@@ -73,7 +73,7 @@ public class CreateEntryCommand : IRequest<EntryDto>
                 .FirstOrDefaultAsync(meg =>
                     meg.User.Id == timeSheet.User.Id
                     && meg.Year == request.Date.Year
-                    && meg.Month == request.Date.Month);
+                    && meg.Month == request.Date.Month, cancellationToken);
 
             if (group is null)
             {
@@ -108,7 +108,7 @@ public class CreateEntryCommand : IRequest<EntryDto>
 
             var project = await _context.Projects
                 .Include(x => x.Activities)
-                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
+                .FirstOrDefaultAsync(x => x.Id == request.ProjectId, cancellationToken);
 
             if (project is null)
             {
@@ -141,7 +141,7 @@ public class CreateEntryCommand : IRequest<EntryDto>
             }
 
             var timeSheetActivity = await _context.TimeSheetActivities
-                .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id);
+                .FirstOrDefaultAsync(x => x.TimeSheet.Id == timeSheet.Id && x.Activity.Id == activity.Id, cancellationToken);
 
             if (timeSheetActivity is null)
             {
@@ -174,7 +174,7 @@ public class CreateEntryCommand : IRequest<EntryDto>
 
             group.Entries.Add(entry);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             var e = entry;
 

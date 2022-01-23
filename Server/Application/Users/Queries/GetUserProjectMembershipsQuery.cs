@@ -49,7 +49,7 @@ public class GetUserProjectMembershipsQuery : IRequest<ItemsResult<ProjectMember
                     .OrderBy(p => p.Created)
                     .Where(x => x.User.Id == request.UserId);
 
-            var totalItems = await query.CountAsync();
+            var totalItems = await query.CountAsync(cancellationToken);
 
             if (request.SortBy is not null)
             {
@@ -62,7 +62,7 @@ public class GetUserProjectMembershipsQuery : IRequest<ItemsResult<ProjectMember
                 .Skip(request.PageSize * request.Page)
                 .Take(request.PageSize)
                 .AsSplitQuery()
-                .ToArrayAsync();
+                .ToArrayAsync(cancellationToken);
 
             var dtos = projectMemberships
                 .DistinctBy(x => x.Project) // Temp

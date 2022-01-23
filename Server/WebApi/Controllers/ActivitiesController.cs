@@ -24,16 +24,16 @@ public class ActivitiesController : ControllerBase
 
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, Application.Common.Models.SortDirection? sortDirection = null)
+    public async Task<ActionResult<ItemsResult<ActivityDto>>> GetActivities(int page = 0, int pageSize = 10, string? projectId = null, string? searchString = null, string? sortBy = null, Application.Common.Models.SortDirection? sortDirection = null, CancellationToken cancellationToken = default)
     {
         return Ok(await _mediator.Send(new GetActivitiesQuery(page, pageSize, projectId, searchString, sortBy, sortDirection)));
     }
 
     [HttpGet("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ActivityDto>> GetActivity(string id)
+    public async Task<ActionResult<ActivityDto>> GetActivity(string id, CancellationToken cancellationToken)
     {
-        var activity = await _mediator.Send(new GetActivityQuery(id));
+        var activity = await _mediator.Send(new GetActivityQuery(id), cancellationToken);
 
         if (activity is null)
         {
@@ -45,11 +45,11 @@ public class ActivitiesController : ControllerBase
 
     [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ActivityDto>> CreateActivity(string projectId, CreateActivityDto createActivityDto)
+    public async Task<ActionResult<ActivityDto>> CreateActivity(string projectId, CreateActivityDto createActivityDto, CancellationToken cancellationToken)
     {
         try
         {
-            var activity = await _mediator.Send(new CreateActivityCommand(projectId, createActivityDto.Name, createActivityDto.Description, createActivityDto.HourlyRate));
+            var activity = await _mediator.Send(new CreateActivityCommand(projectId, createActivityDto.Name, createActivityDto.Description, createActivityDto.HourlyRate), cancellationToken);
 
             return Ok(activity);
         }
@@ -61,11 +61,11 @@ public class ActivitiesController : ControllerBase
 
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult<ActivityDto>> UpdateActivity(string id, UpdateActivityDto updateActivityDto)
+    public async Task<ActionResult<ActivityDto>> UpdateActivity(string id, UpdateActivityDto updateActivityDto, CancellationToken cancellationToken)
     {
         try
         {
-            var activity = await _mediator.Send(new UpdateActivityCommand(id, updateActivityDto.Name, updateActivityDto.Description, updateActivityDto.HourlyRate));
+            var activity = await _mediator.Send(new UpdateActivityCommand(id, updateActivityDto.Name, updateActivityDto.Description, updateActivityDto.HourlyRate), cancellationToken);
 
             return Ok(activity);
         }
@@ -77,11 +77,11 @@ public class ActivitiesController : ControllerBase
 
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<ActionResult> DeleteActivity(string id)
+    public async Task<ActionResult> DeleteActivity(string id, CancellationToken cancellationToken)
     {
         try
         {
-            var activity = await _mediator.Send(new DeleteActivityCommand(id));
+            var activity = await _mediator.Send(new DeleteActivityCommand(id), cancellationToken);
 
             return Ok();
         }
@@ -92,11 +92,11 @@ public class ActivitiesController : ControllerBase
     }
 
     [HttpGet("{id}/Statistics/Summary")]
-    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id)
+    public async Task<ActionResult<StatisticsSummary>> GetStatisticsSummary(string id, CancellationToken cancellationToken)
     {
         try
         {
-            var statistics = await _mediator.Send(new GetActivityStatisticsSummaryQuery(id));
+            var statistics = await _mediator.Send(new GetActivityStatisticsSummaryQuery(id), cancellationToken);
 
             return Ok(_mediator.Send(new GetActivityStatisticsSummaryQuery(id)));
         }

@@ -42,7 +42,7 @@ public class UpdateExpenseCommand : IRequest<ExpenseDto>
             var expense = await _context.Expenses
                 .Include(x => x.Project)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId);
+                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId, cancellationToken);
 
             if (expense is null)
             {
@@ -53,7 +53,7 @@ public class UpdateExpenseCommand : IRequest<ExpenseDto>
             expense.Amount = request.Amount;
             expense.Description = request.Description;
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return new ExpenseDto(expense.Id, expense.Date.ToDateTime(TimeOnly.Parse("1:00")), expense.Amount, expense.Description, GetAttachmentUrl(expense.Attachment), new ProjectDto(expense.Project.Id, expense.Project.Name, expense.Project.Description));
         }

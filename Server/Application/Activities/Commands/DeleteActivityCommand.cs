@@ -29,7 +29,7 @@ public class DeleteActivityCommand : IRequest
         {
             var activity = await _context.Activities
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ActivityId);
+                .FirstOrDefaultAsync(x => x.Id == request.ActivityId, cancellationToken);
 
             if (activity is null)
             {
@@ -38,7 +38,7 @@ public class DeleteActivityCommand : IRequest
 
             _context.Activities.Remove(activity);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return Unit.Value;
         }

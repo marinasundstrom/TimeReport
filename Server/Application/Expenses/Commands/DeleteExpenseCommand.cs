@@ -29,7 +29,7 @@ public class DeleteExpenseCommand : IRequest
         {
             var expense = await _context.Expenses
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId);
+                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId, cancellationToken);
 
             if (expense is null)
             {
@@ -38,7 +38,7 @@ public class DeleteExpenseCommand : IRequest
 
             _context.Expenses.Remove(expense);
 
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(cancellationToken);
 
             return Unit.Value;
         }
