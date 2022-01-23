@@ -9,9 +9,9 @@ namespace TimeReport.Application.Users.Commands;
 
 public class UpdateUserCommand : IRequest<UserDto>
 {
-    public UpdateUserCommand(string id, string firstName, string lastName, string? displayName, string ssn, string email)
+    public UpdateUserCommand(string userId, string firstName, string lastName, string? displayName, string ssn, string email)
     {
-        Id = id;
+        UserId = userId;
         FirstName = firstName;
         LastName = lastName;
         DisplayName = displayName;
@@ -19,7 +19,7 @@ public class UpdateUserCommand : IRequest<UserDto>
         Email = email;
     }
 
-    public string Id { get; }
+    public string UserId { get; }
 
     public string FirstName { get; }
 
@@ -44,7 +44,7 @@ public class UpdateUserCommand : IRequest<UserDto>
         {
             var user = await _context.Users
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
             if (user is null)
             {

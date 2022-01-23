@@ -9,12 +9,12 @@ namespace TimeReport.Application.Expenses.Commands;
 
 public class DeleteExpenseCommand : IRequest
 {
-    public DeleteExpenseCommand(string id)
+    public DeleteExpenseCommand(string expenseId)
     {
-        Id = id;
+        ExpenseId = expenseId;
     }
 
-    public string Id { get; }
+    public string ExpenseId { get; }
 
     public class DeleteExpenseCommandHandler : IRequestHandler<DeleteExpenseCommand>
     {
@@ -29,7 +29,7 @@ public class DeleteExpenseCommand : IRequest
         {
             var expense = await _context.Expenses
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId);
 
             if (expense is null)
             {

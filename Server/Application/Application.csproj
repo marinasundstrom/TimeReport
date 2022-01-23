@@ -18,14 +18,5 @@
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.1" />
   </ItemGroup>
-  <ItemGroup>
-    <None Remove="TimeSheets\EventHandlers\" />
-    <None Remove="TimeSheets\Queries\" />
-    <None Remove="TimeSheets\Commands\" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="TimeSheets\UpdateEntryDetailsCommand.cs\" />
-    <Folder Include="TimeSheets\Queries\" />
-    <Folder Include="TimeSheets\Commands\" />
-  </ItemGroup>
+
 </Project>

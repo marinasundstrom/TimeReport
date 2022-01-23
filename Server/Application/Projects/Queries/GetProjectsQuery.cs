@@ -43,7 +43,6 @@ public class GetProjectsQuery : IRequest<ItemsResult<ProjectDto>>
         public async Task<ItemsResult<ProjectDto>> Handle(GetProjectsQuery request, CancellationToken cancellationToken)
         {
             var query = _context.Projects
-                .Include(p => p.Memberships)
                 .OrderBy(p => p.Created)
                 .AsNoTracking()
                 .AsSplitQuery();

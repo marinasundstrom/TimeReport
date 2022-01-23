@@ -9,12 +9,12 @@ namespace TimeReport.Application.Activities.Commands;
 
 public class DeleteActivityCommand : IRequest
 {
-    public DeleteActivityCommand(string id)
+    public DeleteActivityCommand(string activityId)
     {
-        Id = id;
+        ActivityId = activityId;
     }
 
-    public string Id { get; }
+    public string ActivityId { get; }
 
     public class DeleteActivityCommandHandler : IRequestHandler<DeleteActivityCommand>
     {
@@ -29,7 +29,7 @@ public class DeleteActivityCommand : IRequest
         {
             var activity = await _context.Activities
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.ActivityId);
 
             if (activity is null)
             {

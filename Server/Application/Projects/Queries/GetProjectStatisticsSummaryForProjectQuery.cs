@@ -11,12 +11,12 @@ namespace TimeReport.Application.Projects.Queries;
 
 public class GetProjectStatisticsSummaryForProjectQuery : IRequest<StatisticsSummary>
 {
-    public GetProjectStatisticsSummaryForProjectQuery(string id)
+    public GetProjectStatisticsSummaryForProjectQuery(string projectId)
     {
-        Id = id;
+        ProjectId = projectId;
     }
 
-    public string Id { get; }
+    public string ProjectId { get; }
 
     public class GetProjectStatisticsSummaryForQueryHandler : IRequestHandler<GetProjectStatisticsSummaryForProjectQuery, StatisticsSummary>
     {
@@ -37,11 +37,11 @@ public class GetProjectStatisticsSummaryForProjectQuery : IRequest<StatisticsSum
                 .Include(p => p.Expenses)
                 .AsSplitQuery()
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == request.Id);
+                .FirstOrDefaultAsync(p => p.Id == request.ProjectId);
 
             if (project is null)
             {
-                throw new ProjectNotFoundException(request.Id);
+                throw new ProjectNotFoundException(request.ProjectId);
             }
 
             var totalHours = project.Entries

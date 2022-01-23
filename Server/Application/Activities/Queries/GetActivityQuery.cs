@@ -10,12 +10,12 @@ namespace TimeReport.Application.Activities.Queries;
 
 public class GetActivityQuery : IRequest<ActivityDto>
 {
-    public GetActivityQuery(string id)
+    public GetActivityQuery(string activityid)
     {
-        Id = id;
+        ActivityId = activityid;
     }
 
-    public string Id { get; }
+    public string ActivityId { get; }
 
     public class GetActivityQueryHandler : IRequestHandler<GetActivityQuery, ActivityDto>
     {
@@ -32,7 +32,7 @@ public class GetActivityQuery : IRequest<ActivityDto>
                .Include(x => x.Project)
                .AsNoTracking()
                .AsSplitQuery()
-               .FirstOrDefaultAsync(x => x.Id == request.Id);
+               .FirstOrDefaultAsync(x => x.Id == request.ActivityId);
 
             if (activity is null)
             {

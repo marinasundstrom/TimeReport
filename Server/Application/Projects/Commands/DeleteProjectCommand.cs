@@ -10,12 +10,12 @@ namespace TimeReport.Application.Projects.Commands;
 
 public class DeleteProjectCommand : IRequest
 {
-    public DeleteProjectCommand(string id)
+    public DeleteProjectCommand(string projectId)
     {
-        Id = id;
+        ProjectId = projectId;
     }
 
-    public string Id { get; }
+    public string ProjectId { get; }
 
     public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand>
     {
@@ -30,11 +30,11 @@ public class DeleteProjectCommand : IRequest
         {
             var project = await _context.Projects
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
 
             if (project is null)
             {
-                throw new ProjectNotFoundException(request.Id);
+                throw new ProjectNotFoundException(request.ProjectId);
             }
 
             _context.Projects.Remove(project);

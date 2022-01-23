@@ -10,14 +10,14 @@ namespace TimeReport.Application.Projects.Commands;
 
 public class UpdateProjectCommand : IRequest<ProjectDto>
 {
-    public UpdateProjectCommand(string id, string name, string? description)
+    public UpdateProjectCommand(string projectId, string name, string? description)
     {
-        Id = id;
+        ProjectId = projectId;
         Name = name;
         Description = description;
     }
 
-    public string Id { get; }
+    public string ProjectId { get; }
 
     public string Name { get; }
 
@@ -36,11 +36,11 @@ public class UpdateProjectCommand : IRequest<ProjectDto>
         {
             var project = await _context.Projects
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
 
             if (project is null)
             {
-                throw new ProjectNotFoundException(request.Id);
+                throw new ProjectNotFoundException(request.ProjectId);
             }
 
             project.Name = request.Name;

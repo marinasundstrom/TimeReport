@@ -12,12 +12,12 @@ namespace TimeReport.Application.Expenses.Queries;
 
 public class GetExpenseQuery : IRequest<ExpenseDto>
 {
-    public GetExpenseQuery(string id)
+    public GetExpenseQuery(string expenseId)
     {
-        Id = id;
+        ExpenseId = expenseId;
     }
 
-    public string Id { get; }
+    public string ExpenseId { get; }
 
     public class GetExpenseQueryHandler : IRequestHandler<GetExpenseQuery, ExpenseDto>
     {
@@ -34,7 +34,7 @@ public class GetExpenseQuery : IRequest<ExpenseDto>
                .Include(x => x.Project)
                .AsNoTracking()
                .AsSplitQuery()
-               .FirstOrDefaultAsync(x => x.Id == request.Id);
+               .FirstOrDefaultAsync(x => x.Id == request.ExpenseId);
 
             if (expense is null)
             {

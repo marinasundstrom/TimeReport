@@ -12,14 +12,14 @@ namespace TimeReport.Application.Expenses.Commands;
 
 public class UploadExpenseAttachmentCommand : IRequest<string?>
 {
-    public UploadExpenseAttachmentCommand(string id, string name, Stream stream)
+    public UploadExpenseAttachmentCommand(string expenseId, string name, Stream stream)
     {
-        Id = id;
+        ExpenseId = expenseId;
         Name = name;
         Stream = stream;
     }
 
-    public string Id { get; }
+    public string ExpenseId { get; }
 
     public string Name { get; }
 
@@ -41,7 +41,7 @@ public class UploadExpenseAttachmentCommand : IRequest<string?>
             var expense = await _context.Expenses
                 .Include(x => x.Project)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId);
 
             if (expense is null)
             {

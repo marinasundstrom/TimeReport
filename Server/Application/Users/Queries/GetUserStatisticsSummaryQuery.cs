@@ -10,12 +10,12 @@ namespace TimeReport.Application.Users.Queries;
 
 public class GetUserStatisticsSummaryQuery : IRequest<StatisticsSummary>
 {
-    public GetUserStatisticsSummaryQuery(string id)
+    public GetUserStatisticsSummaryQuery(string userId)
     {
-        Id = id;
+        UserId = userId;
     }
 
-    public string Id { get; }
+    public string UserId { get; }
 
     public class GetUserStatisticsSummaryQueryHandler : IRequestHandler<GetUserStatisticsSummaryQuery, StatisticsSummary>
     {
@@ -31,7 +31,7 @@ public class GetUserStatisticsSummaryQuery : IRequest<StatisticsSummary>
             var user = await _context.Users
                        .AsNoTracking()
                        .AsSplitQuery()
-                       .FirstOrDefaultAsync(x => x.Id == request.Id);
+                       .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
             if (user is null)
             {
@@ -40,7 +40,7 @@ public class GetUserStatisticsSummaryQuery : IRequest<StatisticsSummary>
 
             var entries = await _context.Entries
                 .Include(x => x.Project)
-                .Where(x => x.User.Id == request.Id)
+                .Where(x => x.User.Id == request.UserId)
                 .AsSplitQuery()
                 .AsNoTracking()
                 .ToArrayAsync();

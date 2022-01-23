@@ -11,13 +11,13 @@ namespace TimeReport.Application.Projects.Queries;
 
 public class GetProjectMembershipQuery : IRequest<ProjectMembershipDto>
 {
-    public GetProjectMembershipQuery(string id, string membershipId)
+    public GetProjectMembershipQuery(string projectId, string membershipId)
     {
-        Id = id;
+        ProjectId = projectId;
         MembershipId = membershipId;
     }
 
-    public string Id { get; }
+    public string ProjectId { get; }
     public string MembershipId { get; }
 
     public class GetProjectMembershipQueryHandler : IRequestHandler<GetProjectMembershipQuery, ProjectMembershipDto>
@@ -36,18 +36,18 @@ public class GetProjectMembershipQuery : IRequest<ProjectMembershipDto>
                 .Include(p => p.Memberships)
                 .ThenInclude(m => m.User)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.ProjectId);
 
             if (project is null)
             {
-                throw new ProjectNotFoundException(request.Id);
+                throw new ProjectNotFoundException(request.ProjectId);
             }
 
             var m = project.Memberships.FirstOrDefault(x => x.Id == request.MembershipId);
 
             if (m is null)
             {
-                throw new ProjectMembershipNotFoundException(request.Id);
+                throw new ProjectMembershipNotFoundException(request.ProjectId);
             }
 
             return new ProjectMembershipDto(m.Id, new ProjectDto(m.Project.Id, m.Project.Name, m.Project.Description),

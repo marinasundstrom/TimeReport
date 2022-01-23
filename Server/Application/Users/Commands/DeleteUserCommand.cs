@@ -9,12 +9,12 @@ namespace TimeReport.Application.Users.Commands;
 
 public class DeleteUserCommand : IRequest
 {
-    public DeleteUserCommand(string id)
+    public DeleteUserCommand(string userId)
     {
-        Id = id;
+        UserId = userId;
     }
 
-    public string Id { get; }
+    public string UserId { get; }
 
     public class DeleteUserCommandHandler : IRequestHandler<DeleteUserCommand>
     {
@@ -29,7 +29,7 @@ public class DeleteUserCommand : IRequest
         {
             var user = await _context.Users
                         .AsSplitQuery()
-                        .FirstOrDefaultAsync(x => x.Id == request.Id);
+                        .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
             if (user is null)
             {

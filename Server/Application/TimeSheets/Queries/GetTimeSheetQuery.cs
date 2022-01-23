@@ -12,12 +12,12 @@ namespace TimeReport.Application.TimeSheets.Queries;
 
 public class GetTimeSheetQuery : IRequest<TimeSheetDto?>
 {
-    public GetTimeSheetQuery(string id)
+    public GetTimeSheetQuery(string timeSheetId)
     {
-        Id = id;
+        TimeSheetId = timeSheetId;
     }
 
-    public string Id { get; }
+    public string TimeSheetId { get; }
 
     public class GetTimeSheetQueryHandler : IRequestHandler<GetTimeSheetQuery, TimeSheetDto?>
     {
@@ -44,7 +44,7 @@ public class GetTimeSheetQuery : IRequest<TimeSheetDto?>
                 .ThenInclude(x => x.Project)
                 .AsNoTracking()
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.TimeSheetId);
 
             if (timeSheet is null)
             {

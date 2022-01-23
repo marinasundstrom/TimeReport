@@ -10,15 +10,15 @@ namespace TimeReport.Application.Activities.Commands;
 
 public class UpdateActivityCommand : IRequest<ActivityDto>
 {
-    public UpdateActivityCommand(string id, string name, string? description, decimal? hourlyRate)
+    public UpdateActivityCommand(string activityId, string name, string? description, decimal? hourlyRate)
     {
-        Id = id;
+        ActivityId = activityId;
         Name = name;
         Description = description;
         HourlyRate = hourlyRate;
     }
 
-    public string Id { get; }
+    public string ActivityId { get; }
     public string Name { get; }
     public string? Description { get; }
     public decimal? HourlyRate { get; }
@@ -37,7 +37,7 @@ public class UpdateActivityCommand : IRequest<ActivityDto>
             var activity = await _context.Activities
                 .Include(x => x.Project)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.ActivityId);
 
             if (activity is null)
             {

@@ -9,12 +9,12 @@ namespace TimeReport.Application.Users.Queries;
 
 public class GetUserQuery : IRequest<UserDto>
 {
-    public GetUserQuery(string id)
+    public GetUserQuery(string userId)
     {
-        Id = id;
+        UserId = userId;
     }
 
-    public string Id { get; }
+    public string UserId { get; }
 
     public class GetUserQueryHandler : IRequestHandler<GetUserQuery, UserDto>
     {
@@ -30,7 +30,7 @@ public class GetUserQuery : IRequest<UserDto>
             var user = await _context.Users
                 .AsNoTracking()
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.UserId);
 
             if (user is null)
             {

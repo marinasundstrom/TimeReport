@@ -12,15 +12,15 @@ namespace TimeReport.Application.Expenses.Commands;
 
 public class UpdateExpenseCommand : IRequest<ExpenseDto>
 {
-    public UpdateExpenseCommand(string id, DateTime date, decimal amount, string? description)
+    public UpdateExpenseCommand(string expenseId, DateTime date, decimal amount, string? description)
     {
-        Id = id;
+        ExpenseId = expenseId;
         Date = date;
         Amount = amount;
         Description = description;
     }
 
-    public string Id { get; }
+    public string ExpenseId { get; }
 
     public DateTime Date { get; }
 
@@ -42,7 +42,7 @@ public class UpdateExpenseCommand : IRequest<ExpenseDto>
             var expense = await _context.Expenses
                 .Include(x => x.Project)
                 .AsSplitQuery()
-                .FirstOrDefaultAsync(x => x.Id == request.Id);
+                .FirstOrDefaultAsync(x => x.Id == request.ExpenseId);
 
             if (expense is null)
             {

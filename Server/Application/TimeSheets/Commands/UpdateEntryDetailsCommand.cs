@@ -16,16 +16,16 @@ namespace TimeReport.Application.TimeSheets.Commands;
 
 public class UpdateEntryDetailsCommand : IRequest<EntryDto>
 {
-    public UpdateEntryDetailsCommand(string timeSheetId, string id, string? description)
+    public UpdateEntryDetailsCommand(string timeSheetId, string entryId, string? description)
     {
         TimeSheetId = timeSheetId;
-        Id = id;
+        EntryId = entryId;
         Description = description;
     }
 
     public string TimeSheetId { get; }
 
-    public string Id { get; }
+    public string EntryId { get; }
 
     public string? Description { get; }
 
@@ -63,11 +63,11 @@ public class UpdateEntryDetailsCommand : IRequest<EntryDto>
                 throw new TimeSheetClosedException(request.TimeSheetId);
             }
 
-            var entry = timeSheet.Entries.FirstOrDefault(e => e.Id == request.Id);
+            var entry = timeSheet.Entries.FirstOrDefault(e => e.Id == request.EntryId);
 
             if (entry is null)
             {
-                throw new EntryNotFoundException(request.Id);
+                throw new EntryNotFoundException(request.EntryId);
             }
 
             if (entry.MonthGroup.Status == EntryStatus.Locked)

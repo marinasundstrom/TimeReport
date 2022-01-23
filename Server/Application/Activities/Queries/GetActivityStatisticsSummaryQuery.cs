@@ -10,12 +10,12 @@ namespace TimeReport.Application.Activities.Queries;
 
 public class GetActivityStatisticsSummaryQuery : IRequest<StatisticsSummary>
 {
-    public GetActivityStatisticsSummaryQuery(string id)
+    public GetActivityStatisticsSummaryQuery(string activityId)
     {
-        Id = id;
+        ActivityId = activityId;
     }
 
-    public string Id { get; }
+    public string ActivityId { get; }
 
     public class GetStatisticsSummaryQueryHandler : IRequestHandler<GetActivityStatisticsSummaryQuery, StatisticsSummary>
     {
@@ -33,7 +33,7 @@ public class GetActivityStatisticsSummaryQuery : IRequest<StatisticsSummary>
                .ThenInclude(x => x.User)
                .AsSplitQuery()
                .AsNoTracking()
-               .FirstOrDefaultAsync(x => x.Id == request.Id);
+               .FirstOrDefaultAsync(x => x.Id == request.ActivityId);
 
             if (activity is null)
             {
