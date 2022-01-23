@@ -274,6 +274,8 @@
             return;
 
         table3.ReloadServerData();
+
+        statisticsSummary = await ProjectsClient.GetStatisticsSummaryAsync();
     }
 
     private async Task OnEditExpenseClicked(ExpenseDto expense)
@@ -290,6 +292,8 @@
             return;
 
         table3.ReloadServerData();
+
+        statisticsSummary = await ProjectsClient.GetStatisticsSummaryAsync();
     }
 
     async Task DeleteExpense(ExpenseDto expense)
@@ -303,6 +307,8 @@
         await ExpensesClient.DeleteExpenseAsync(expense.Id);
 
         table3.ReloadServerData();
+
+        statisticsSummary = await ProjectsClient.GetStatisticsSummaryAsync();
     }
 
     private void GotToExpense(ExpenseDto expense)

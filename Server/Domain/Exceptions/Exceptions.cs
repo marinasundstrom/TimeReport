@@ -47,6 +47,42 @@ namespace TimeReport.Domain.Exceptions
         public string EntryId { get; }
     }
 
+    public class ProjectMembershipNotFoundException : DomainException
+    {
+        public ProjectMembershipNotFoundException(string membershipId)
+             : base("Project Membership not found", $"Project Membership with Id {membershipId} was not found.")
+        {
+            ProjectMembershipId = membershipId;
+        }
+
+        public string ProjectMembershipId { get; }
+    }
+
+    public class UserNotFoundException : DomainException
+    {
+        public UserNotFoundException(string userName)
+             : base("User not found", $"User {userName} was not found.")
+        {
+            UserName = userName;
+        }
+
+        public string UserName { get; }
+    }
+
+    public class UserAlreadyProjectMemberException : DomainException
+    {
+        public UserAlreadyProjectMemberException(string userName, string projectId)
+             : base("User is already a member", $"User {userName} is already a member of {projectId}.")
+        {
+            UserName = userName;
+            ProjectId = projectId;
+        }
+
+        public string UserName { get; }
+
+        public string ProjectId { get; }
+    }
+
     public class EntryAlreadyExistsException : DomainException
     {
         public EntryAlreadyExistsException(string timeSheetId, DateOnly date, string activityId)

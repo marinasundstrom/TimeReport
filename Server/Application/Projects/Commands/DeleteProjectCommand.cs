@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 using TimeReport.Application.Common.Interfaces;
+using TimeReport.Domain.Exceptions;
 
 namespace TimeReport.Application.Projects.Commands;
 
@@ -33,7 +34,7 @@ public class DeleteProjectCommand : IRequest
 
             if (project is null)
             {
-                throw new Exception();
+                throw new ProjectNotFoundException(request.Id);
             }
 
             _context.Projects.Remove(project);

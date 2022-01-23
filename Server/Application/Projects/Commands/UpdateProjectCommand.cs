@@ -4,6 +4,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 
 using TimeReport.Application.Common.Interfaces;
+using TimeReport.Domain.Exceptions;
 
 namespace TimeReport.Application.Projects.Commands;
 
@@ -39,7 +40,7 @@ public class UpdateProjectCommand : IRequest<ProjectDto>
 
             if (project is null)
             {
-                throw new Exception();
+                throw new ProjectNotFoundException(request.Id);
             }
 
             project.Name = request.Name;

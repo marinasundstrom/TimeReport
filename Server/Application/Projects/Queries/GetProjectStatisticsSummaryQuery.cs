@@ -10,63 +10,46 @@ namespace TimeReport.Application.Projects.Queries;
 
 public class GetProjectStatisticsSummaryQuery : IRequest<StatisticsSummary>
 {
-    public GetProjectStatisticsSummaryQuery(string id)
-    {
-        Id = id;
-    }
-
-    public string Id { get; }
-
-    public class GetProjectStatisticsSummaryQueryHandler : IRequestHandler<GetProjectStatisticsSummaryQuery, StatisticsSummary>
+    public class GetProjectStatisticsSummaryHandler : IRequestHandler<GetProjectStatisticsSummaryQuery, StatisticsSummary>
     {
         private readonly ITimeReportContext _context;
 
-        public GetProjectStatisticsSummaryQueryHandler(ITimeReportContext context)
+        public GetProjectStatisticsSummaryHandler(ITimeReportContext context)
         {
             _context = context;
         }
 
         public async Task<StatisticsSummary> Handle(GetProjectStatisticsSummaryQuery request, CancellationToken cancellationToken)
         {
-            var project = await _context.Projects
-                .Include(p => p.Entries)
-                .ThenInclude(x => x.User)
-                .Include(p => p.Entries)
-                .ThenInclude(x => x.Activity)
-                .Include(p => p.Expenses)
-                .AsSplitQuery()
-                .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == request.Id);
+            var entries = await _context.Entries
+                .CountAsync();
 
-            if (project is null)
-            {
-                throw new Exception();
-            }
+            var totalProjects = await _context.Projects
+               .CountAsync();
 
-            var totalHours = project.Entries
-                .Sum(e => e.Hours.GetValueOrDefault());
+            var totalUsers = await _context.Users
+                .CountAsync();
 
-            var revenue = project.Entries
+            var totalHours = await _context.Entries
+                .SumAsync(p => p.Hours.GetValueOrDefault());
+
+            var revenue = await _context.Entries
                 .Where(e => e.Activity.HourlyRate.GetValueOrDefault() > 0)
-                .Sum(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
+                .SumAsync(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
 
-            var expenses = project.Entries
+            var expenses = await _context.Entries
                  .Where(e => e.Activity.HourlyRate.GetValueOrDefault() < 0)
-                 .Sum(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
+                 .SumAsync(e => e.Activity.HourlyRate.GetValueOrDefault() * (decimal)e.Hours.GetValueOrDefault());
 
-            expenses -= project.Expenses
-                 .Sum(e => e.Amount);
-
-            var totalUsers = project.Entries
-                .Select(e => e.User)
-                .DistinctBy(e => e.Id)
-                .Count();
+            expenses -= await _context.Expenses
+                 .SumAsync(e => e.Amount);
 
             return new StatisticsSummary(new StatisticsSummaryEntry[]
             {
-                new ("Participants", totalUsers),
+                new ("Projects", totalProjects),
+                new ("Users", totalUsers),
                 new ("Hours", totalHours),
-                new ("Revenue", null, revenue, unit: "currency"),
+                new ("Revenue", null, revenue,  unit: "currency"),
                 new ("Expenses", null, expenses, unit: "currency")
             });
         }
