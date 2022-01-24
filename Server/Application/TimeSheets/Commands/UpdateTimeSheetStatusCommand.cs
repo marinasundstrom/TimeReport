@@ -9,25 +9,25 @@ using TimeReport.Domain.Exceptions;
 
 namespace TimeReport.Application.TimeSheets.Commands;
 
-public class CloseWeekCommand : IRequest
+public class UpdateTimeSheetStatusCommand : IRequest
 {
-    public CloseWeekCommand(string timeSheetId)
+    public UpdateTimeSheetStatusCommand(string timeSheetId)
     {
         TimeSheetId = timeSheetId;
     }
 
     public string TimeSheetId { get; }
 
-    public class CloseWeekCommandHandler : IRequestHandler<CloseWeekCommand>
+    public class UpdateTimeSheetStatusCommandHandler : IRequestHandler<UpdateTimeSheetStatusCommand>
     {
         private readonly ITimeReportContext _context;
 
-        public CloseWeekCommandHandler(ITimeReportContext context)
+        public UpdateTimeSheetStatusCommandHandler(ITimeReportContext context)
         {
             _context = context;
         }
 
-        public async Task<Unit> Handle(CloseWeekCommand request, CancellationToken cancellationToken)
+        public async Task<Unit> Handle(UpdateTimeSheetStatusCommand request, CancellationToken cancellationToken)
         {
             var timeSheet = await _context.TimeSheets
                 .Include(x => x.Entries)
@@ -38,7 +38,7 @@ public class CloseWeekCommand : IRequest
                 .ThenInclude(x => x.Activity)
                 .ThenInclude(x => x.Project)
                 .AsSplitQuery()
-                .FirstAsync(x => x.Id == request.TimeSheetId, cancellationToken);
+                .FirstAsync(x => x.Id == request.TimeSheetId);
 
             if (timeSheet is null)
             {
@@ -46,7 +46,7 @@ public class CloseWeekCommand : IRequest
             }
 
             timeSheet.Status = TimeSheetStatus.Closed;
-            await _context.SaveChangesAsync(cancellationToken);
+            await _context.SaveChangesAsync();
 
             return Unit.Value;
         }
